@@ -1,6 +1,6 @@
 import numpy as np
-import gkData as gkData
-import gkPlot as plt
+from utils import gkData
+from utils import gkPlot as plt
 
 params = {} #Initialize dictionary to store plotting and other parameters
 
