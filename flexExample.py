@@ -11,12 +11,11 @@ filenameBase = '/Users/jtenbarg/Desktop/runs/gemEddyv43/Data/gem_' #Include the 
 #filenameBase = '/Users/jtenbarg/Desktop/runs/PerpShockECDI/Data/p3-maxwell-ions-1x2v_' #Include the underscore
 #filenameBase = '/Users/jtenbarg/Desktop/Runs/ot3D_2D/ot3D_'
 
-fileNum = '15'
+fileNum = 15
 suffix = '.bp'
+varid = 'ux_elc' #See table of choices in README
+tmp = gkData.gkData(filenameBase,fileNum,suffix,varid,params) #Initialize constants for normalization
 
-tmp = gkData.gkData(filenameBase,fileNum,suffix,params) #Initialize constants for normalization
-
-params["varid"] = 'ux_elc' #See table of choices below
 params["lowerLimits"] = [-1.e6, -1.e6, -1.e6, -1.e6, -1.e6]
 params["upperLimits"] = [1.e6, 1.e6, 1.e6, 1.e6, 1.e6, 1.e6]
 params["restFrame"] = 1 #Convert pressures to restframe
@@ -48,63 +47,23 @@ params["sub0"] = 0 #Subtract data by data(t=0)
 params["div0"] = 0 #Divide data by data(t=0)
 
 
-
-##########################################
-#Table of choices for varid. i,j, k = x,y,z. spec = species as in filename
-#Case is ignored
-#Particle distribution: dist_spec
-#EM fields: ei or bi
-#Scalar potentials: phi, psi 
-#Magnitude E or B: mage or magb
-#Density: n_spec
-#Flow velocity: ui_spec
-#Stream function: stream_spec
-#Eparallel: epar
-#Current: ji
-#Species current: ji_spec
-#Parallel current: jpar
-#Species parallel current: jpar_spec
-#J.E, Work: work
-#Parallel work, Jpar.Epar: workpar
-#J_spec.E, species work: work_spec
-#Species parallel work, Jpar_spec.Epar: workpar_spec
-#Component work, JiEi: worki
-#Species component work, Ji_spec Ei: worki_spec
-#Pressure: pij_spec
-#Parallel pressure: ppar_spec
-#Perp pressure: pperp_spec
-#Tr(P): trp_spec
-#Temperature: temp_spec
-#Parallel temp: temppar_spec
-#Perp temp: tempperp_spec
-#Tperp / Tpar: tempperppar_spec
-#Tpar / Tperp: tempparperp_spec
-#Pressure agyrotropy: agyro_spec
-#Beta: beta_spec
-#Beta par or perp: betapar_spec, betaperp_spec
-#Magnetic moment, p_perp_spec / B n_spec: mu_spec
-#Gyroradius, sqrt(2 T_perp / m) / (|q| B / m): rho_spec
-#Inertial length, c / omega_P: inertiallength_spec
-##########################################
-
-
+###################################################
 #Let's compute something strange
-params["varid"] = 'ux_elc' #See table of choices below
-ux = gkData.gkData(filenameBase,fileNum,suffix,params)
+ux = gkData.gkData(filenameBase,fileNum,suffix,'ux_elc',params)
 ux.readData()
 
-params["varid"] = 'bx' #See table of choices below
-bx = gkData.gkData(filenameBase,fileNum,suffix,params)
+bx = gkData.gkData(filenameBase,fileNum,suffix,'bx',params)
 bx.readData()
 
 varGK = ux**2*(ux + bx)/ bx #Do some math
 
-varGK.integrate(axis=0) #Integrate over x
+varGK = varGK.integrate(axis=0) #Integrate over x
+plt.gkPlot(varGK)
 
 #Maybe we want to get the actual coords and data from the Gkeyll object for doing something else
-#data = var.data
-#coords = var.coords
+data = var.data
+coords = var.coords
 
-plt.gkPlot(varGK)
+
 
 

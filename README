@@ -1,0 +1,37 @@
+##########################################
+#Table of choices for varid. i,j, k = x,y,z. spec = species as in filename
+#Case is ignored
+#Particle distribution: dist_spec
+#EM fields: ei or bi
+#Scalar potentials: phi, psi 
+#Magnitude E or B: mage or magb
+#Density: n_spec
+#Flow velocity: ui_spec
+#Stream function: stream_spec
+#Eparallel: epar
+#Current: ji
+#Species current: ji_spec
+#Parallel current: jpar
+#Species parallel current: jpar_spec
+#J.E, Work: work
+#Parallel work, Jpar.Epar: workpar
+#J_spec.E, species work: work_spec
+#Species parallel work, Jpar_spec.Epar: workpar_spec
+#Component work, JiEi: worki
+#Species component work, Ji_spec Ei: worki_spec
+#Pressure: pij_spec
+#Parallel pressure: ppar_spec
+#Perp pressure: pperp_spec
+#Tr(P): trp_spec
+#Temperature: temp_spec
+#Parallel temp: temppar_spec
+#Perp temp: tempperp_spec
+#Tperp / Tpar: tempperppar_spec
+#Tpar / Tperp: tempparperp_spec
+#Pressure agyrotropy: agyro_spec
+#Beta: beta_spec
+#Beta par or perp: betapar_spec, betaperp_spec
+#Magnetic moment, p_perp_spec / B n_spec: mu_spec
+#Gyroradius, sqrt(2 T_perp / m) / (|q| B / m): rho_spec
+#Inertial length, c / omega_P: inertiallength_spec
+

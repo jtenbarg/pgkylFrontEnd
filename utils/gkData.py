@@ -5,10 +5,11 @@ from utils import getData
 from copy import copy, deepcopy
 
 class gkData:
-    def __init__(self,filenameBase,fileNum,suffix,params):
+    def __init__(self,filenameBase,fileNum,suffix,varid,params):
         self.filenameBase = filenameBase
         self.fileNum = fileNum
         self.suffix = suffix
+        self.varid = varid
         self.params = params
 
         self.basis = ''
@@ -17,7 +18,6 @@ class gkData:
         self.dimsV = 0
         self.dx = []
         self.po = 0
-        self.varid = []
         self.data = []
         self.coords = []
         self.const = []
@@ -46,8 +46,10 @@ class gkData:
             self.params["lowerLimits"] = [-1e10, -1e10, -1e10, -1e10, -1e10, -1e10]
         if (isinstance(self.params.get('upperLimits'), type(None))): #Default limits
             self.params["upperLimits"] = [1e10, 1e10, 1e10, 1e10, 1e10, 1e10]
-        if (isinstance(self.params.get('axesNorm'), type(None))): #Default limits
+        if (isinstance(self.params.get('axesNorm'), type(None))): #Default axes normalization
             self.params["axesNorm"] = [1., 1., 1., 1., 1., 1.]
+        if (isinstance(self.params.get('axesLabels'), type(None))): #Default axes lables
+            self.params["axesLabels"] = ['z0', 'z1', 'z2']
         if (isinstance(self.params.get('restFrame'), type(None))): #Default restFrame = false if not specified
             self.params["restFrame"] = 0
         if (isinstance(self.params.get('absVal'), type(None))): #Default absVal = false if not specified
@@ -62,17 +64,25 @@ class gkData:
             self.params["div0"] = 0
         if (isinstance(self.params.get('timeNorm'), type(None))): #Default time normalization if not specified
             self.params["timeNorm"] = 1
+        if (isinstance(self.params.get('symBar'), type(None))): #Default symmetric bar plot
+            self.params["symBar"] = 0
+        if (isinstance(self.params.get('axisEqual'), type(None))): #Default plot axes
+            self.params["axisEqual"] = 0
+        if (isinstance(self.params.get('plotContours'), type(None))): #Default cont plot
+            self.params["plotContours"] = 0
+        if (isinstance(self.params.get('displayTime'), type(None))): #Default display time
+            self.params["displayTime"] = 0
         if (isinstance(self.params.get('colormap'), type(None))): #Default colormap
             self.params["colormap"] = 'inferno'
 
+        self.varid = self.varid.lower()  #Convert varid to all lower case, just in case
             
-        if not (isinstance(self.params.get('varid'), type(None))): #Convert varid to all lower case, just in case
-            self.params["varid"] = self.params["varid"].lower()
-        
+        #if not (isinstance(self.params.get('varid'), type(None))): #Convert varid to all lower case, just in case
+            
         getConst.setConst(self)
 
     def __copy__(self):
-        return type(self)(self.filenameBase,self.fileNum,self.suffix,self.params)
+        return type(self)(self.filenameBase,self.fileNum,self.suffix,self.varid,self.params)
     
     def __deepcopy__(self, memo): # memo is a dict of id's to copies
         id_self = id(self)        # memoization avoids unnecesary recursion
@@ -82,6 +92,7 @@ class gkData:
                 deepcopy(self.filenameBase, memo), 
                 deepcopy(self.fileNum, memo),
                 deepcopy(self.suffix, memo),
+                deepcopy(self.varid, memo),
                 deepcopy(self.params, memo))
             memo[id_self] = _copy 
         return _copy
@@ -89,8 +100,9 @@ class gkData:
     def getCopy(self):
         newData = deepcopy(self)
         newData.time = self.time
-        newData.coords = self.coords
-        newData.dx = self.dx
+        newData.data = self.data.copy()
+        newData.coords = self.coords.copy()
+        newData.dx = self.dx.copy()
         return newData
         
     def setMaxMin(self):
@@ -103,7 +115,7 @@ class gkData:
        
         if self.params["sub0"] or self.params["div0"]:
             tmp = copy(self)
-            tmp.fileNum = '0'
+            tmp.fileNum = 0
             getData.getData(tmp)
             if self.params["sub0"]:
                 self.data = self.data - tmp.data
@@ -172,21 +184,33 @@ class gkData:
         newData.setMaxMin()
         return newData
 
-    def integrate(self, axis=0):
-        self.data = np.squeeze(np.sum(self.data, axis=axis))
-        if isinstance(axis, int):
-            dx = self.dx[axis]
-            del self.coords[axis]
-        else:
-            axisSort = sorted(axis, reverse=True)
-            dx = 1.
-            for ax in axisSort:
-                dx *= self.dx[ax]
-                del self.coords[ax]
+    def integrate(self, axis=None):
+        newData = self.getCopy()
         
-        self.data = self.data*dx
-        self.coords = np.squeeze(self.coords)
-        self.setMaxMin()
+        if axis is None:
+            dims = len(np.shape(np.squeeze(newData.data)))
+            newData.data = np.squeeze(np.sum(newData.data))
+            dx = 1.
+            for d in reversed(range(dims)):
+                dx = dx*newData.dx[d]
+                del newData.coords[d]
+        else:
+            newData.data = np.squeeze(np.sum(newData.data, axis=axis))
+            if isinstance(axis, int):
+                dx = newData.dx[axis]
+                del newData.coords[axis]
+            else:
+                axisSort = sorted(axis, reverse=True)
+                dx = 1.
+                for ax in axisSort:
+                    dx *= newData.dx[ax]
+                    del newData.coords[ax]
+                    
+       
+        newData.data = newData.data*dx
+        newData.coords = np.squeeze(newData.coords)
+        newData.setMaxMin()
+        return newData
        
          
   

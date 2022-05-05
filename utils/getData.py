@@ -6,11 +6,11 @@ from pathlib import Path
 
 def getData(self):
     
-    varidGlobal = self.params['varid']
-    
-        
+    varidGlobal = self.varid
+           
     fieldvars = ['ex', 'ey', 'ez', 'bx', 'by', 'bz', 'potE', 'potB']
     dvars = ['n']
+  
     if self.dimsV==0: #For fluid data
         if self.model == '5m':
             momvars = ['n', 'ux', 'uy', 'uz','pxx']
@@ -43,7 +43,11 @@ def getData(self):
             data0 = pg.GData(filename, comp=comp, z0=zs[0], z1=zs[1], z2=zs[2], z3=zs[3], z4=zs[4], z5=zs[5])
             if varidGlobal[0:4] == 'dist':
                 data0 = pg.GData(filename, z0=zs[0], z1=zs[1], z2=zs[2], z3=zs[3], z4=zs[4], z5=zs[5])
-            proj = pg.GInterpModal(data0, self.po, self.basis)
+            polyOrder = self.po
+            #if not (isinstance(self.params.get('polyOrderOverride'), type(None))):
+            #    polyOrder = self.params["polyOrderOverride"]
+            
+            proj = pg.GInterpModal(data0, polyOrder, self.basis)
             coords, data = proj.interpolate()
         elif self.model == '5m' or self.model == '10m':
             comp = index
@@ -58,12 +62,12 @@ def getData(self):
 
     def getDist(varid): #Returns particle distribution
         spec = varid[varid.find('_')+1:] + '_'
-        filename = self.filenameBase + spec + self.fileNum + self.suffix
+        filename = self.filenameBase + spec + str(self.fileNum) + self.suffix
         return genRead(filename,0)
 
     def getGenField(varid): #Returns E* or B*
         index = fieldvars.index(varid[0:2])
-        filename = self.filenameBase + 'field_' + self.fileNum + self.suffix
+        filename = self.filenameBase + 'field_' + str(self.fileNum) + self.suffix
         
         return genRead(filename, index)
 
@@ -71,12 +75,12 @@ def getData(self):
         spec = varid[varid.find('_')+1:]
         if self.model == 'vm':
             index = dvars.index(varid[0])
-            filename = self.filenameBase + spec + '_M0_' + self.fileNum + self.suffix
+            filename = self.filenameBase + spec + '_M0_' + str(self.fileNum) + self.suffix
             coords, data = genRead(filename, index)
         elif self.model == '5m' or self.model == '10m':
             index = momvars.index(varid[0])
             specIndex = self.speciesFileIndex.index(spec)
-            filename = self.filenameBase + spec + '_' + self.fileNum + self.suffix
+            filename = self.filenameBase + spec + '_' + str(self.fileNum) + self.suffix
             coords, data = genRead(filename, index)
             data = data / self.mu[specIndex]
         return coords, data
@@ -86,10 +90,10 @@ def getData(self):
             index = momvars.index(varid[0:2])
             spec = varid[varid.find('_')+1:]
             if self.model == 'vm':
-                filename = self.filenameBase + spec + '_M1i_' + self.fileNum + self.suffix
+                filename = self.filenameBase + spec + '_M1i_' + str(self.fileNum) + self.suffix
                 coords, data = genRead(filename, index)
             elif self.model == '5m' or self.model == '10m':
-                filename = self.filenameBase + spec + '_' + self.fileNum + self.suffix
+                filename = self.filenameBase + spec + '_' + str(self.fileNum) + self.suffix
                 coords, data = genRead(filename, index)
                 specIndex = self.speciesFileIndex.index(spec)
                 data = data / self.mu[specIndex]
@@ -110,13 +114,13 @@ def getData(self):
             spec = varid[varid.find('_')+1:]
             if self.model == 'vm':
                 index = pvars.index(varid[0:3])
-                filename = self.filenameBase + spec + '_M2ij_' + self.fileNum + self.suffix
+                filename = self.filenameBase + spec + '_M2ij_' + str(self.fileNum) + self.suffix
                 if not Path(filename).is_file():
                     print('Warning: Full moment file does not exist. Using M2 instead.')
-                    filename = self.filenameBase + spec + '_M2_' + self.fileNum + self.suffix
+                    filename = self.filenameBase + spec + '_M2_' + str(self.fileNum) + self.suffix
                 coords, data = genRead(filename, index)
             elif self.model == '5m' or self.model == '10m':
-                filename = self.filenameBase + spec + '_' + self.fileNum + self.suffix
+                filename = self.filenameBase + spec + '_' + str(self.fileNum) + self.suffix
                 index = momvars.index(varid[0:3])
                 coords, data = genRead(filename, index)
                 specIndex = self.speciesFileIndex.index(spec)
@@ -130,10 +134,10 @@ def getData(self):
     def getGenQ(varid): #Return M3
         index = pvars.index(varid[0:3])
         spec = varid[varid.find('_')+1:]
-        filename = self.filenameBase + spec + '_M3ijk_' + self.fileNum + self.suffix
+        filename = self.filenameBase + spec + '_M3ijk_' + str(self.fileNum) + self.suffix
         if not Path(filename).is_file():
             print('Warning: Full moment file does not exist. Using M3i instead.')
-            filename = self.filenameBase + spec + '_M3i_' + self.fileNum + self.suffix
+            filename = self.filenameBase + spec + '_M3i_' + str(self.fileNum) + self.suffix
             if not Path(filename).is_file():
                 print('Warning: No heat flux data to read.')
                 coords = 0.
