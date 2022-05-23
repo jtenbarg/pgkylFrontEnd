@@ -51,6 +51,5 @@ params["div0"] = 0 #Divide data by data(t=0)
 
 var = gkData.gkData(filenameBase,fileNum,suffix,varid,params)
 var.readData()
-
 plt.gkPlot(var, show=1, save=0) #show and save are optional. Default show=1, save=0. Saves to filenameBase directory
 

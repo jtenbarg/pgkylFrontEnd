@@ -12,7 +12,8 @@ plt.rc('xtick', labelsize=MEDIUM_SIZE)    # fontsize of the tick labels
 plt.rc('ytick', labelsize=MEDIUM_SIZE)    # fontsize of the tick labels
 plt.rc('legend', fontsize=MEDIUM_SIZE)    # legend fontsize
 plt.rc('figure', titlesize=MEDIUM_SIZE)  # fontsize of the figure title
-
+plt.rcParams["font.weight"] = "bold"
+plt.rcParams["axes.labelweight"] = "bold"
 
 def gkPlot(self,show=1,save=0):
 
@@ -25,7 +26,7 @@ def gkPlot(self,show=1,save=0):
         raise RuntimeError("You have confused me! {0}D data cannot be plotted.".format(dims))
     if dims == 1:
 
-        plt.plot(self.coords/axNorm[0], self.data, 'k', linewidth=2)
+        plt.plot(self.coords[0]/axNorm[0], self.data, 'k', linewidth=2)
         plt.xlabel(self.params["axesLabels"][0])
         plt.autoscale(enable=True, axis='both', tight=True)
         #plt.rc('axes', labelsize=30)

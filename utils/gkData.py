@@ -132,7 +132,10 @@ class gkData:
           
         self.setMaxMin()
 
-
+    def compactRead(self):
+        self.readData()
+        return self
+        
     def __add__(self, *vals):
         newData = self.getCopy()
         for b in vals:
@@ -194,21 +197,23 @@ class gkData:
             for d in reversed(range(dims)):
                 dx = dx*newData.dx[d]
                 del newData.coords[d]
+                del newData.params["axesNorm"][d]
         else:
             newData.data = np.squeeze(np.sum(newData.data, axis=axis))
             if isinstance(axis, int):
                 dx = newData.dx[axis]
                 del newData.coords[axis]
+                del newData.params["axesNorm"][axis]
             else:
                 axisSort = sorted(axis, reverse=True)
                 dx = 1.
                 for ax in axisSort:
                     dx *= newData.dx[ax]
                     del newData.coords[ax]
+                    del newData.params["axesNorm"][ax]
                     
        
         newData.data = newData.data*dx
-        newData.coords = np.squeeze(newData.coords)
         newData.setMaxMin()
         return newData
        

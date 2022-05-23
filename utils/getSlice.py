@@ -66,6 +66,7 @@ def postSlice(self):
     idx = None
     idxValues = [slice(0, self.data.shape[d]) for d in range(dims)]
     for d in range(dims):
+       
         idxs = np.searchsorted(coords[d], [self.params["lowerLimits"][d]*axNorm[d], \
                                                    self.params["upperLimits"][d]*axNorm[d]])
         #Handle edge cases
@@ -82,10 +83,11 @@ def postSlice(self):
             del self.coords[d]
             del self.params["axesNorm"][d]
             self.dx = np.delete(self.dx, d)
-            
-    dims = len(np.shape(np.squeeze(self.data)))
-    if dims == 1:
-        self.coords = self.coords[0] #Simplifies some later operations to bypass the list format
+    #self.coords = np.squeeze(self.coords)
+    
+    #dims = len(np.shape(np.squeeze(self.data)))
+    #if dims == 1:
+    #    self.coords = self.coords[0] #Simplifies some later operations to bypass the list format
 
 
          
