@@ -11,10 +11,12 @@ filenameBase = '/Users/jtenbarg/Desktop/runs/gemEddyv43/Data/gem_'
 #filenameBase = '/Users/jtenbarg/Desktop/runs/PerpShockECDI/Data/p3-maxwell-ions-1x2v_'
 #filenameBase = '/Users/jtenbarg/Desktop/Runs/ot3D_2D/ot3D_'
 #filenameBase = '/Users/jtenbarg/Research/codes/gkylzero/weibel_4d-'
+filenameBase  = '/Users/jtenbarg/Desktop/runs/ECDIKap2D3s3/Data/ECDI_';
 
-fileNum = 19
+
+fileNum = 0
 suffix = '.bp'
-varid = 'jz' #See table of choices in README
+varid = 'temp_elc' #See table of choices in README
 tmp = gkData.gkData(filenameBase,fileNum,suffix,varid,params) #Initialize constants for normalization
 
 #below limits [z0, z1, z2,...] normalized to params["axesNorm"]
