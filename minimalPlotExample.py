@@ -13,11 +13,9 @@ fileNum = 19
 suffix = '.bp'
 varid = 'jz' #See table of choices in README
 
-tmp = gkData.gkData(filenameBase,fileNum,suffix,varid,params) #Initialize constants for normalization
 ##########################################
 
-var = gkData.gkData(filenameBase,fileNum,suffix,varid,params)
-var.readData()
+var = gkData.gkData(filenameBase,fileNum,suffix,varid,params).compactRead()
 
 plt.gkPlot(var, show=1, save=0) #show and save are optional. Default show=1, save=0. Saves to filenameBase directory
 
