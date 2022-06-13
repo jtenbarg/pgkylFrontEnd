@@ -1,6 +1,5 @@
 import numpy as np
 from utils import gkData
-from utils import gkPlot as plt
 import matplotlib.pyplot as plt
 SMALL_SIZE = 14
 MEDIUM_SIZE = 16
@@ -14,6 +13,8 @@ plt.rc('legend', fontsize=MEDIUM_SIZE)    # legend fontsize
 plt.rc('figure', titlesize=MEDIUM_SIZE)  # fontsize of the figure title
 plt.rcParams["font.weight"] = "bold"
 plt.rcParams["axes.labelweight"] = "bold"
+plt.rcParams["text.usetex"] = True
+
 
 params = {} #Initialize dictionary to store plotting and other parameters
 
@@ -41,21 +42,24 @@ params["timeLabel"] = '$\Omega_{ci}^{-1}$'
 
 var = gkData.gkData(filenameBase,fileNum,suffix,varid,params)
 var.readData()
-
-
 k = var.coords[0][:]*var.params["axesNorm"][0] #Normalize k
 om = var.data/var.params["timeNorm"] #Normalize omega
+
+kMin = min(k)
 kMax = max(k)
-nModes= len(var.data[1])
+nModesTot = len(var.data[1])
+nModes = int(np.floor(nModesTot/2))+1
+colors = plt.cm.jet(np.linspace(0,1,nModes))
 
 plt.figure(figsize=(12,8))
-for i in range(int(np.floor(nModes/2))+1): #Plot half of the modes
-    plt.plot(k, abs(om[:,i,0]), 'k', abs(om[:,i,1]), '--r', linewidth=2)
+for i in range(nModes): #Plot half of the modes
+    plt.plot(k, abs(om[:,i,0]), color=colors[i], linewidth=2)
+    plt.plot(k, abs(om[:,i,1]), '--', color=colors[i], linewidth=2)
 plt.legend(['Real', 'Imaginary'], frameon=False)
 plt.grid()
 plt.xlabel(r"$k_x \rho_p$")
-plt.ylabel("$\omega / \Omega_{cp}$")
+plt.ylabel(r"$\omega / \Omega_{cp}$")
 
-plt.gca().set_xlim([0.0, kMax])
+plt.gca().set_xlim([kMin, kMax])
 plt.show()
 
