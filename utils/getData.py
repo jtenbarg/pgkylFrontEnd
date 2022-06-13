@@ -56,7 +56,6 @@ def getData(self):
             coords = data0.getGrid()
             if self.suffix == '.gkyl':
                 data = data[...,comp]
-            print(np.shape(data))
         else:
             raise RuntimeError("You have confused me! I don't know what to do with data of type {0}.".format(self.model))
         self.time = data0.meta['time']
@@ -465,7 +464,6 @@ def getData(self):
         debye = np.sqrt(T*self.eps0 / (np.abs(n) * self.q[specIndex]**2.))
         self.params["restFrame"] = tmp
         return coords, debye
-                
         
 
         
@@ -546,7 +544,6 @@ def getData(self):
     dims = len(np.shape(np.squeeze(data)))
     # Center the grid values.
     self.dx = np.zeros(dims)
-    print(np.shape(np.squeeze(data)))
     if dims > 0:
         for d in range(dims):
             self.dx[d] = coords[d][1] - coords[d][0]

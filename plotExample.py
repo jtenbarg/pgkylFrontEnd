@@ -8,12 +8,9 @@ params = {} #Initialize dictionary to store plotting and other parameters
 #Include the final underscore or dash in the filename
 #Expects a filenameBase + 'params.txt' file to exist! See example_params.txt for the formatting
 filenameBase = '/Users/jtenbarg/Desktop/runs/gemEddyv43/Data/gem_' 
-filenameBase  = '/Users/jtenbarg/Desktop/runs/ECDIv2Kap/Data/ECDI_';
-filenameBase  = '/Users/jtenbarg/Downloads/10m_par_firehose_';
-#filenameBase = '/Users/jtenbarg/Desktop/Runs/ot3D_2D/ot3D_';
 
-fileNum = 100
-suffix = '.gkyl'
+fileNum = 0
+suffix = '.bp'
 varid = 'bz' #See table of choices in README
 tmp = gkData.gkData(filenameBase,fileNum,suffix,varid,params) #Initialize constants for normalization
 

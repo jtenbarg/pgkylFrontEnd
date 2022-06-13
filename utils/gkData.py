@@ -2,6 +2,7 @@ import numpy as np
 import postgkyl as pg
 from utils import getConst
 from utils import getData
+from utils import getDispersionRelation
 from copy import copy, deepcopy
 
 class gkData:
@@ -111,26 +112,29 @@ class gkData:
 
            
     def readData(self):
-        getData.getData(self)
+        if self.varid == 'dispersion':
+            self.coords, self.data = getDispersionRelation.getData(self.filenameBase+'frequencies.bp')
+        else:
+            getData.getData(self)
        
-        if self.params["sub0"] or self.params["div0"]:
-            tmp = copy(self)
-            tmp.fileNum = 0
-            getData.getData(tmp)
-            if self.params["sub0"]:
-                self.data = self.data - tmp.data
-            if self.params["div0"]:
-                self.data = self.data / tmp.data
+            if self.params["sub0"] or self.params["div0"]:
+                tmp = copy(self)
+                tmp.fileNum = 0
+                getData.getData(tmp)
+                if self.params["sub0"]:
+                    self.data = self.data - tmp.data
+                if self.params["div0"]:
+                    self.data = self.data / tmp.data
        
-        if self.params["absVal"]:
-            self.data = np.absolute(self.data)
-        if self.params["log"]:
-            self.data = np.log10(self.data)
-            if self.params["logThresh"] != 0:
-                ii = np.where(self.data < np.max(self.data) + self.params["logThresh"])
-                self.data[ii] =  self.params["logThresh"]
+            if self.params["absVal"]:
+                self.data = np.absolute(self.data)
+            if self.params["log"]:
+                self.data = np.log10(self.data)
+                if self.params["logThresh"] != 0:
+                    ii = np.where(self.data < np.max(self.data) + self.params["logThresh"])
+                    self.data[ii] =  self.params["logThresh"]
           
-        self.setMaxMin()
+            self.setMaxMin()
 
     def compactRead(self):
         self.readData()
