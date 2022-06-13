@@ -54,6 +54,9 @@ def getData(self):
             data0 = pg.data.GData(filename, comp=comp, z0=zs[0], z1=zs[1], z2=zs[2])
             data = data0.getValues()
             coords = data0.getGrid()
+            if self.suffix == '.gkyl':
+                data = data[...,comp]
+            print(np.shape(data))
         else:
             raise RuntimeError("You have confused me! I don't know what to do with data of type {0}.".format(self.model))
         self.time = data0.meta['time']
@@ -543,6 +546,7 @@ def getData(self):
     dims = len(np.shape(np.squeeze(data)))
     # Center the grid values.
     self.dx = np.zeros(dims)
+    print(np.shape(np.squeeze(data)))
     if dims > 0:
         for d in range(dims):
             self.dx[d] = coords[d][1] - coords[d][0]

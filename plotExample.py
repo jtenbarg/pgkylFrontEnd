@@ -8,15 +8,13 @@ params = {} #Initialize dictionary to store plotting and other parameters
 #Include the final underscore or dash in the filename
 #Expects a filenameBase + 'params.txt' file to exist! See example_params.txt for the formatting
 filenameBase = '/Users/jtenbarg/Desktop/runs/gemEddyv43/Data/gem_' 
-#filenameBase = '/Users/jtenbarg/Desktop/runs/PerpShockECDI/Data/p3-maxwell-ions-1x2v_'
-#filenameBase = '/Users/jtenbarg/Desktop/Runs/ot3D_2D/ot3D_'
-#filenameBase = '/Users/jtenbarg/Research/codes/gkylzero/weibel_4d-'
-filenameBase  = '/Users/jtenbarg/Desktop/runs/ECDIKap2D3s3/Data/ECDI_';
+filenameBase  = '/Users/jtenbarg/Desktop/runs/ECDIv2Kap/Data/ECDI_';
+filenameBase  = '/Users/jtenbarg/Downloads/10m_par_firehose_';
+#filenameBase = '/Users/jtenbarg/Desktop/Runs/ot3D_2D/ot3D_';
 
-
-fileNum = 0
-suffix = '.bp'
-varid = 'temp_elc' #See table of choices in README
+fileNum = 100
+suffix = '.gkyl'
+varid = 'bz' #See table of choices in README
 tmp = gkData.gkData(filenameBase,fileNum,suffix,varid,params) #Initialize constants for normalization
 
 #below limits [z0, z1, z2,...] normalized to params["axesNorm"]
@@ -42,7 +40,7 @@ params["numContours"] = 10 #Number of contours
 params["axisEqual"] = 1 #Makes axes equal for 2D
 params["symBar"] = 0 #Force colorbar to be symmetric about 0
 params["displayTime"] = 1 #Show time of frame
-params["colormap"] = 'inferno'#Colormap for 2D plots: inferno*, bwr (red-blue), any matplotlib colormap
+params["colormap"] = 'inferno' #Colormap for 2D plots: inferno*, seismic (red-blue), any matplotlib colormap
 params["absVal"] = 0 #Take absolute value of data
 params["log"] = 0 #Take log_10 of data
 params["logThresh"] = -4 #Limit lower value of log_10(data)
@@ -53,5 +51,6 @@ params["div0"] = 0 #Divide data by data(t=0)
 
 var = gkData.gkData(filenameBase,fileNum,suffix,varid,params)
 var.readData()
+
 plt.gkPlot(var, show=1, save=0) #show and save are optional. Default show=1, save=0. Saves to filenameBase directory
 
