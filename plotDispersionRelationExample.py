@@ -43,15 +43,18 @@ var = gkData.gkData(filenameBase,fileNum,suffix,varid,params)
 var.readData()
 
 
-kMax = max(var.coords[0][:])/var.params["axesNorm"][0]
+k = var.coords[0][:]*var.params["axesNorm"][0] #Normalize k
+om = var.data/var.params["timeNorm"] #Normalize omega
+kMax = max(k)
 nModes= len(var.data[1])
-plt.figure(figsize=(12,8))
-for i in range(int(np.floor(nModes/2))+1):
-    plt.plot(var.coords[0][:]/var.params["axesNorm"][0], abs(var.data[:,i,0])*var.params["timeNorm"], 'k', abs(var.data[:,i,1])*var.params["timeNorm"], '--r', linewidth=2)
 
+plt.figure(figsize=(12,8))
+for i in range(int(np.floor(nModes/2))+1): #Plot half of the modes
+    plt.plot(k, abs(om[:,i,0]), 'k', abs(om[:,i,1]), '--r', linewidth=2)
+plt.legend(['Real', 'Imaginary'], frameon=False)
 plt.grid()
 plt.xlabel(r"$k_x \rho_p$")
-plt.ylabel("$\omega_r / \Omega_{cp}$")
+plt.ylabel("$\omega / \Omega_{cp}$")
 
 plt.gca().set_xlim([0.0, kMax])
 plt.show()
