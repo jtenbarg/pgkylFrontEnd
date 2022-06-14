@@ -540,9 +540,9 @@ def getData(self):
         coords = [[0.]]
         data = [0.]
         print('Unrecognized variable name {0}! You have confused me, so no data for you!'.format(varidGlobal))
-   
-    dims = np.shape(coords)[0]
 
+    
+    dims = len(np.shape(data)) - 1
     # Center the grid values.
     self.dx = np.zeros(dims)
     if dims > 0:
