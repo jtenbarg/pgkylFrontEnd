@@ -18,6 +18,7 @@ plt.rc('legend', fontsize=MEDIUM_SIZE)    # legend fontsize
 plt.rc('figure', titlesize=MEDIUM_SIZE)  # fontsize of the figure title
 plt.rcParams["font.weight"] = "bold"
 plt.rcParams["axes.labelweight"] = "bold"
+plt.rcParams["text.usetex"] = True
 
 
 params = {} #Initialize dictionary to store plotting and other parameters
@@ -76,7 +77,7 @@ EbxPol = polar_isotropic.polar_isotropic(nkpolar, dataShape[0], dataShape[1], 0,
 plt.figure(figsize=(12,8))
 plt.loglog(akp,EbxPol,'k', linewidth=2)
 plt.autoscale(enable=True, axis='both', tight=True)
-plt.xlabel('$k_\perp d_i$')
+plt.xlabel(r'$k_{\perp} \rho_i$')
 plt.ylabel('Energy')
 plt.autoscale(enable=True, axis='both', tight=True)
 plt.show()

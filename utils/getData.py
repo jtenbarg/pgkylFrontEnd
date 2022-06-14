@@ -60,7 +60,7 @@ def getData(self):
             raise RuntimeError("You have confused me! I don't know what to do with data of type {0}.".format(self.model))
         self.time = data0.meta['time']
         
-        return coords, np.squeeze(data)
+        return coords, data
 
     def getDist(varid): #Returns particle distribution
         spec = varid[varid.find('_')+1:] + '_'
@@ -541,7 +541,8 @@ def getData(self):
         data = [0.]
         print('Unrecognized variable name {0}! You have confused me, so no data for you!'.format(varidGlobal))
    
-    dims = len(np.shape(np.squeeze(data)))
+    dims = np.shape(coords)[0]
+
     # Center the grid values.
     self.dx = np.zeros(dims)
     if dims > 0:
@@ -552,7 +553,7 @@ def getData(self):
     self.coords = coords
     #if dims == 1:
     #    self.coords = coords[0] #Simplifies some later operations to bypass the list format
-    self.data = np.squeeze(data)
-    
+    self.data = data
+
     getSlice.postSlice(self)
    

@@ -9,7 +9,7 @@ params = {} #Initialize dictionary to store plotting and other parameters
 #Expects a filenameBase + 'params.txt' file to exist! See example_params.txt for the formatting
 filenameBase = '/Users/jtenbarg/Desktop/runs/gemEddyv43/Data/gem_' 
 
-fileNum = 0
+fileNum = 15
 suffix = '.bp'
 varid = 'bz' #See table of choices in README
 tmp = gkData.gkData(filenameBase,fileNum,suffix,varid,params) #Initialize constants for normalization

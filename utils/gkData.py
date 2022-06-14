@@ -116,7 +116,8 @@ class gkData:
             self.coords, self.data = getDispersionRelation.getData(self.filenameBase+'frequencies.bp')
         else:
             getData.getData(self)
-       
+            self.data = np.squeeze(self.data)
+            
             if self.params["sub0"] or self.params["div0"]:
                 tmp = copy(self)
                 tmp.fileNum = 0

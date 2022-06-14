@@ -40,8 +40,7 @@ params["timeLabel"] = '$\Omega_{ci}^{-1}$'
 
 #########################################################
 
-var = gkData.gkData(filenameBase,fileNum,suffix,varid,params)
-var.readData()
+var = gkData.gkData(filenameBase,fileNum,suffix,varid,params).compactRead()
 k = var.coords[0][:]*var.params["axesNorm"][0] #Normalize k
 om = var.data/var.params["timeNorm"] #Normalize omega
 

@@ -34,4 +34,4 @@
 #Magnetic moment, p_perp_spec / B n_spec: mu_spec
 #Gyroradius, sqrt(2 T_perp / m) / (|q| B / m): rho_spec
 #Inertial length, c / omega_P: inertiallength_spec
-
+#Dispersion relation data from linear solver: dispersion
