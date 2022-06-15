@@ -1,20 +1,17 @@
 import numpy as np
 from utils import gkData
 from utils import gkPlot as plt
-
 params = {} #Initialize dictionary to store plotting and other parameters
+#End preamble###################################
 
 #Tested to handle g0 and g2: VM, 5M, 10M
-#Include the final underscore or dash in the filename
-#Expects a filenameBase + 'params.txt' file to exist! See example_params.txt for the formatting
-filenameBase = '/Users/jtenbarg/Desktop/runs/gemEddyv43/Data/gem_' #Include the underscore
-#filenameBase = '/Users/jtenbarg/Desktop/runs/PerpShockECDI/Data/p3-maxwell-ions-1x2v_' #Include the underscore
-#filenameBase = '/Users/jtenbarg/Desktop/Runs/ot3D_2D/ot3D_'
+#Requires a _params.txt file in your data directory or the form gkeyllOutputBasename_params.txt! See example_params.txt for formatting
+paramFile = '/Users/jtenbarg/Desktop/runs/gemEddyv43/Data/gem_params.txt' 
 
 fileNum = 15
 suffix = '.bp'
 varid = 'ux_elc' #See table of choices in README
-tmp = gkData.gkData(filenameBase,fileNum,suffix,varid,params) #Initialize constants for normalization
+tmp = gkData.gkData(paramFile,fileNum,suffix,varid,params) #Initialize constants for normalization
 
 params["lowerLimits"] = [-1.e6, -1.e6, -1.e6, -1.e6, -1.e6]
 params["upperLimits"] = [1.e6, 1.e6, 1.e6, 1.e6, 1.e6, 1.e6]
@@ -47,22 +44,22 @@ params["sub0"] = 0 #Subtract data by data(t=0)
 params["div0"] = 0 #Divide data by data(t=0)
 
 
-###################################################
-#Let's compute something strange
-ux = gkData.gkData(filenameBase,fileNum,suffix,'ux_elc',params)
+#End input##################################################
+#Let's compute something 
+ux = gkData.gkData(paramFile,fileNum,suffix,'ux_elc',params)
 ux.readData()
 
-bx = gkData.gkData(filenameBase,fileNum,suffix,'bx',params)
+bx = gkData.gkData(paramFile,fileNum,suffix,'bx',params)
 bx.readData()
 
 varGK = ux**2*(ux + bx)/ bx #Do some math
 
-varGK = varGK.integrate(axis=0) #Integrate over x
+varGK = varGK.integrate(axis=0) #Integrate over first dimension, x
 plt.gkPlot(varGK)
 
 #Maybe we want to get the actual coords and data from the Gkeyll object for doing something else
-data = var.data
-coords = var.coords
+uxData = ux.data
+uxCoords = ux.coords
 
 
 

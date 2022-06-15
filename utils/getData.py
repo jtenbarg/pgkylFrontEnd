@@ -551,8 +551,6 @@ def getData(self):
             coords[d] = 0.5*(coords[d][:-1] + coords[d][1:])
   
     self.coords = coords
-    #if dims == 1:
-    #    self.coords = coords[0] #Simplifies some later operations to bypass the list format
     self.data = data
 
     getSlice.postSlice(self)

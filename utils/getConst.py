@@ -4,7 +4,9 @@ import csv
 def setConst(self):
 
     n = []
-    paramFile = self.filenameBase + 'params.txt'
+    paramFile = self.paramFile
+    self.filenameBase = paramFile[:paramFile.find('params')]
+    
     with open(paramFile) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
@@ -43,5 +45,4 @@ def setConst(self):
         self.beta = np.zeros(len(self.mu))
         self.rho = np.zeros(len(self.mu))
     
-        
 

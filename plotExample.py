@@ -1,18 +1,18 @@
 import numpy as np
 from utils import gkData
 from utils import gkPlot as plt
-
 params = {} #Initialize dictionary to store plotting and other parameters
+#End Preamble######################
 
 #Tested to handle g0 and g2: VM, 5M, 10M
-#Include the final underscore or dash in the filename
-#Expects a filenameBase + 'params.txt' file to exist! See example_params.txt for the formatting
-filenameBase = '/Users/jtenbarg/Desktop/runs/gemEddyv43/Data/gem_' 
+#Requires a _params.txt file in your data directory or the form gkeyllOutputBasename_params.txt! See example_params.txt for formatting
+paramsFile = '/Users/jtenbarg/Desktop/runs/gemEddyv43/Data/gem_params.txt' 
 
-fileNum = 15
+fileNum = 20
+
 suffix = '.bp'
 varid = 'bz' #See table of choices in README
-tmp = gkData.gkData(filenameBase,fileNum,suffix,varid,params) #Initialize constants for normalization
+tmp = gkData.gkData(paramsFile,fileNum,suffix,varid,params) #Initialize constants for normalization
 
 #below limits [z0, z1, z2,...] normalized to params["axesNorm"]
 params["lowerLimits"] = [-1.e6, -1.e6, -1.e6, -1.e6, -1.e6, -1e6] 
@@ -44,10 +44,10 @@ params["logThresh"] = -4 #Limit lower value of log_10(data)
 params["sub0"] = 0 #Subtract data by data(t=0)
 params["div0"] = 0 #Divide data by data(t=0)
 
-#########################################################
+#End input########################################################
 
-var = gkData.gkData(filenameBase,fileNum,suffix,varid,params)
+var = gkData.gkData(paramsFile,fileNum,suffix,varid,params)
 var.readData()
 
-plt.gkPlot(var, show=1, save=0) #show and save are optional. Default show=1, save=0. Saves to filenameBase directory
+plt.gkPlot(var, show=1, save=0) #show and save are optional. Default show=1, save=0. Saves to var.filenameBase directory
 

@@ -6,6 +6,7 @@ from utils import initpolar
 from utils import polar_isotropic
 import matplotlib.pyplot as plt
 import postgkyl as pg
+params = {} #Initialize dictionary to store plotting and other parameters
 SMALL_SIZE = 14
 MEDIUM_SIZE = 16
 BIGGER_SIZE = 20
@@ -19,19 +20,17 @@ plt.rc('figure', titlesize=MEDIUM_SIZE)  # fontsize of the figure title
 plt.rcParams["font.weight"] = "bold"
 plt.rcParams["axes.labelweight"] = "bold"
 plt.rcParams["text.usetex"] = True
+#End Preamble##################################
 
-
-params = {} #Initialize dictionary to store plotting and other parameters
 
 #Tested to handle g0 and g2: VM, 5M, 10M
-#Include the final underscore or dash in the filename
-#Expects a filenameBase + 'params.txt' file to exist! See example_params.txt for the formatting
-filenameBase = '/Users/jtenbarg/Desktop/runs/gemEddyv43/Data/gem_' 
+#Requires a _params.txt file in your data directory or the form gkeyllOutputBasename_params.txt! See example_params.txt for formatting
+paramsFile = '/Users/jtenbarg/Desktop/runs/gemEddyv43/Data/gem_params.txt' 
 
 fileNum = 19
 suffix = '.bp'
 bgDir = 2
-tmp = gkData.gkData(filenameBase,fileNum,suffix,'bx',params) #Initialize constants for normalization
+tmp = gkData.gkData(paramsFile,fileNum,suffix,'bx',params) #Initialize constants for normalization
 
 #below limits [z0, z1, z2,...] normalized to params["axesNorm"]
 params["lowerLimits"] = [-1.e6, -1.e6, -1.e6, -1.e6, -1.e6, -1e6] 
@@ -48,9 +47,9 @@ params["axesNorm"] = [tmp.d[speciesIndexAxes], tmp.d[speciesIndexAxes], tmp.vt[s
 params["timeNorm"] = tmp.omegaC[speciesIndexTime]
 
 
-#########################################################
+#End input##########################################
 
-bx = gkData.gkData(filenameBase,fileNum,suffix,'bx',params).compactRead() #Tmp read to get grid info
+bx = gkData.gkData(paramsFile,fileNum,suffix,'bx',params).compactRead() #Tmp read to get grid info
 
 dataShape = np.shape(bx.data)
 dims = len(dataShape)
@@ -67,7 +66,7 @@ akp, nbin, polar_index, akplim = initpolar.initpolar(nkp[0], nkp[1], 0, kperp[0]
 ebinCorr = np.pi*akp/(akp[0]*nbin)
 
 #Read and take FFT of data
-bx = gkData.gkData(filenameBase,fileNum,suffix,'bx',params).compactRead()
+bx = gkData.gkData(paramsFile,fileNum,suffix,'bx',params).compactRead()
 bxFFT = np.fft.fftn(bx.data) * np.sqrt(1/volumeFFT)
 
 #Compute reduced polar spectra

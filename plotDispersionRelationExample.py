@@ -1,6 +1,7 @@
 import numpy as np
 from utils import gkData
 import matplotlib.pyplot as plt
+params = {} #Initialize dictionary to store plotting and other parameters
 SMALL_SIZE = 14
 MEDIUM_SIZE = 16
 BIGGER_SIZE = 20
@@ -14,19 +15,16 @@ plt.rc('figure', titlesize=MEDIUM_SIZE)  # fontsize of the figure title
 plt.rcParams["font.weight"] = "bold"
 plt.rcParams["axes.labelweight"] = "bold"
 plt.rcParams["text.usetex"] = True
+#End Preamble############################################
 
-
-params = {} #Initialize dictionary to store plotting and other parameters
-
-#Include the final underscore or dash in the filename
-#Expects a filenameBase + 'params.txt' file to exist! See example_params.txt for the formatting
-filenameBase = '/Users/jtenbarg/Downloads/10m-1-waves_';
+#Requires a _params.txt file in your data directory or the form gkeyllOutputBasename_params.txt! See example_params.txt for formatting
+paramsFile = '/Users/jtenbarg/Desktop/Runs/Linear/10m-1-waves_params.txt';
 
 fileNum = 0
 suffix = ''
 varid = 'dispersion'
 
-tmp = gkData.gkData(filenameBase,fileNum,suffix,varid,params) #Initialize constants for normalization
+tmp = gkData.gkData(paramsFile,fileNum,suffix,varid,params) #Initialize constants for normalization
 
 #Define species to normalize and lengths/times 
 refSpeciesAxes = 'ion'
@@ -38,9 +36,9 @@ params["timeNorm"] = tmp.omegaC[speciesIndexTime]
 params["axesLabels"] = ['$k_x d_p$']
 params["timeLabel"] = '$\Omega_{ci}^{-1}$'
 
-#########################################################
+#End input#####################################################
 
-var = gkData.gkData(filenameBase,fileNum,suffix,varid,params).compactRead()
+var = gkData.gkData(paramsFile,fileNum,suffix,varid,params).compactRead()
 k = var.coords[0][:]*var.params["axesNorm"][0] #Normalize k
 om = var.data/var.params["timeNorm"] #Normalize omega
 
