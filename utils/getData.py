@@ -62,7 +62,8 @@ def getData(self):
         else:
             raise RuntimeError("You have confused me! I don't know what to do with data of type {0}.".format(self.model))
         if self.suffix == '.gkyl':
-            self.time = 0.
+            print('Warning, gkyl0 data files do not contain time date. time set to fileNum')
+            self.time = self.fileNum
         else:
             self.time = data0.meta['time']
         
