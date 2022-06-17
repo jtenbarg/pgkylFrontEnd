@@ -490,6 +490,26 @@ def getData(self):
             ExB = np.zeros(np.shape(bx))
             
         return coords, ExB
+
+    def sortDrifts(varid, drift, qnE):
+        suf = ['x', 'y', 'z']
+        id = varid[varid.find('_')-1]
+        if id in suf: #Component drift or work
+            comp = suf.index(id)
+            nonComp = np.squeeze(np.where(np.arange(3) != comp))
+            for d in nonComp:
+                drift[d,...] = 0.
+
+        if varid.find('work') >= 0:
+            data =  np.sum(qnE*drift,axis=0)
+        else:
+            if not (id in suf):
+                data = np.zeros(np.shape(qnE[0]))
+                print('Warning, no component index specified for drift. Returning zeros.')
+            else:
+                data = np.sum(drift,axis=0)
+
+        return data
     
     def getCurvatureDrift(varid): #Curvature drift energization. Based on Appendix F of Juno et al 2021
         coords, bx = getGenField('bx')
@@ -522,32 +542,17 @@ def getData(self):
         coords, Pperp = getPressPerp(varid)
         coords, Ppar = getPressPar(varid)
         self.params["restFrame"] = tmp
+        spec = varid[varid.find('_')+1:]
         specIndex = self.speciesFileIndex.index(spec)
         q = self.q[specIndex]
         coords, n = getDens('n_' + spec)
-        
+
         drift = np.array([(Ppar - Pperp)*(by*kappaz - bz*kappay) / (q*n*B),\
                      (Ppar - Pperp)*(bz*kappax - bx*kappaz) / (q*n*B),\
                      (Ppar - Pperp)*(bx*kappay - by*kappax) / (q*n*B)])
-        E = np.array([ex, ey, ez])
+        qnE = np.array([q*n*ex, q*n*ey, q*n*ez])
 
-        suf = ['x', 'y', 'z']
-        id = varid[varid.find('_')-1]
-        if id in suf: #Component work
-            comp = suf.index(id)
-            nonComp = np.squeeze(np.where(np.arange(3) != comp))
-            for d in nonComp:
-                drift[d,...] = 0.
-
-        if varid.find('work') >= 0:
-            data =  q*n*np.sum(E*drift,axis=0)
-        else:
-            if not (id in suf):
-                data = np.zeros(np.shape(ex))
-                print('Warning, no component index specified. Returning zeros.')
-            else:
-                data = np.sum(drift,axis=0)
-        
+        data = sortDrifts(varid, drift, qnE)
         return coords, data
 
     def getGradBDrift(varid):  #GradB drift energization. Based on Appendix F of Juno et al 2021
@@ -583,25 +588,10 @@ def getData(self):
         coords, n = getDens('n_' + spec)
 
         drift = np.array([Pperp*cBx / (q*n),Pperp*cBy / (q*n),Pperp*cBz / (q*n)])
-        E = np.array([ex, ey, ez])
+        qnE = np.array([q*n*ex, q*n*ey, q*n*ez])
 
-        suf = ['x', 'y', 'z']
-        id = varid[varid.find('_')-1]
-        if id in suf: #Component work
-            comp = suf.index(id)
-            nonComp = np.squeeze(np.where(np.arange(3) != comp))
-            for d in nonComp:
-                drift[d,...] = 0.
+        data = sortDrifts(varid, drift, qnE)
 
-        if varid.find('work') >= 0:
-            data =  q*n*np.sum(E*drift,axis=0)
-        else:
-            if not (id in suf):
-                data = np.zeros(np.shape(ex))
-                print('Warning, no component index specified. Returning zeros.')
-            else:
-                data = np.sum(drift,axis=0)
-    
         return coords, data
 
     def getMagnetizationDrift(varid):  #Magnetization drift energization. Based on Appendix F of Juno et al 2021
@@ -637,24 +627,9 @@ def getData(self):
         q = self.q[specIndex]
         coords, n = getDens('n_' + spec)
         drift = np.array([cMx / (q*n),  cMy / (q*n),  cMz / (q*n)])
-        E = np.array([ex, ey, ez])
+        qnE = np.array([q*n*ex, q*n*ey, q*n*ez])
 
-        suf = ['x', 'y', 'z']
-        id = varid[varid.find('_')-1]
-        if id in suf: #Component work
-            comp = suf.index(id)
-            nonComp = np.squeeze(np.where(np.arange(3) != comp))
-            for d in nonComp:
-                drift[d,...] = 0.
-
-        if varid.find('work') >= 0:
-            data =  q*n*np.sum(E*drift,axis=0)
-        else:
-            if not (id in suf):
-                data = np.zeros(np.shape(ex))
-                print('Warning, no component index specified. Returning zeros.')
-            else:
-                data = np.sum(drift,axis=0)
+        data = sortDrifts(varid, drift, qnE)
 
         return coords, data
     
@@ -687,26 +662,10 @@ def getData(self):
         drift = np.array([ (by*dpdz - bz*dpdy) / (q*n*B),\
                                (bz*dpdx - bx*dpdz) / (q*n*B),\
                                (bx*dpdy - by*dpdx) / (q*n*B)])
-        E = np.array([ex, ey, ez])
+        qnE = np.array([q*n*ex, q*n*ey, q*n*ez])
 
-        suf = ['x', 'y', 'z']
-        id = varid[varid.find('_')-1]
-        if id in suf: #Component work
-            comp = suf.index(id)
-            nonComp = np.squeeze(np.where(np.arange(3) != comp))
-            for d in nonComp:
-                drift[d,...] = 0.
+        data = sortDrifts(varid, drift, qnE)
 
-        if varid.find('work') >= 0:
-            data =  q*n*np.sum(E*drift,axis=0)
-        else:
-            if not (id in suf):
-                data = np.zeros(np.shape(ex))
-                print('Warning, no component index specified. Returning zeros.')
-            else:
-                data = np.sum(drift,axis=0)
-
-        
         return coords, data
 
     def getAgyrotropicDrift(varid):  #Agyrotropic drift energization. Based on Appendix F of Juno et al 2021
@@ -758,27 +717,9 @@ def getData(self):
         drift = np.array([ (by*(dpixzdx + dpiyzdy + dpizzdz) - bz*(dpixydx + dpiyydy + dpiyzdz)) / (q*n*B),\
                                (bz*(dpixxdx + dpixydy + dpixzdz) - bx*(dpixzdx + dpiyzdy + dpizzdz)) / (q*n*B),\
                                (bx*(dpixydx + dpiyydy + dpiyzdz) - by*(dpixxdx + dpixydy + dpixzdz)) / (q*n*B)])
-        E = np.array([ex, ey, ez])
+        qnE = np.array([q*n*ex, q*n*ey, q*n*ez])
 
-        suf = ['x', 'y', 'z']
-        id = varid[varid.find('_')-1]
-        if id in suf: #Component work
-            comp = suf.index(id)
-            nonComp = np.squeeze(np.where(np.arange(3) != comp))
-            for d in nonComp:
-                drift[d,...] = 0.
-
-        if varid.find('work') >= 0:
-            data =  q*n*np.sum(E*drift,axis=0)
-        else:
-            if not (id in suf):
-                data = np.zeros(np.shape(ex))
-                print('Warning, no component index specified. Returning zeros.')
-            else:
-                data = np.sum(drift,axis=0)
-        
-       
-            
+        data = sortDrifts(varid, drift, qnE)
         return coords, data
 
 
