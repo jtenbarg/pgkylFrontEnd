@@ -17,7 +17,7 @@ plt.rcParams["axes.labelweight"] = "bold"
 plt.rcParams["text.usetex"] = True
 #End Preamble############################################
 
-#Requires a _params.txt file in your data directory or the form gkeyllOutputBasename_params.txt! See example_params.txt for formatting
+#Requires a _params.txt file in your data directory of the form gkeyllOutputBasename_params.txt! See example_params.txt for formatting
 paramsFile = '/Users/jtenbarg/Desktop/Runs/Linear/10m-1-waves_params.txt';
 
 fileNum = 0

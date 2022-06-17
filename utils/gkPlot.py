@@ -4,7 +4,6 @@ from utils import gkData
 SMALL_SIZE = 14
 MEDIUM_SIZE = 16
 BIGGER_SIZE = 20
-
 plt.rc('font', size=MEDIUM_SIZE)          # controls default text sizes
 plt.rc('axes', titlesize=MEDIUM_SIZE)     # fontsize of the axes title
 plt.rc('axes', labelsize=BIGGER_SIZE)    # fontsize of the x and y labels
@@ -30,12 +29,10 @@ def gkPlot(self,show=1,save=0):
         plt.plot(self.coords[0]/axNorm[0], self.data, 'k', linewidth=2)
         plt.xlabel(self.params["axesLabels"][0])
         plt.autoscale(enable=True, axis='both', tight=True)
-        #plt.rc('axes', labelsize=30)
-
                
     elif dims == 2:
-        plt.contourf(self.coords[0]/axNorm[0], self.coords[1]/axNorm[1], np.transpose(self.data),200)
-        #plt.pcolormesh(self.coords[0]/axNorm[0], self.coords[1]/axNorm[1], np.transpose(self.data))
+        #plt.contourf(self.coords[0]/axNorm[0], self.coords[1]/axNorm[1], np.transpose(self.data),200)
+        plt.pcolormesh(self.coords[0]/axNorm[0], self.coords[1]/axNorm[1], np.transpose(self.data))
         plt.xlabel(self.params["axesLabels"][0])
         plt.ylabel(self.params["axesLabels"][1])
         plt.colorbar()
@@ -45,6 +42,9 @@ def gkPlot(self,show=1,save=0):
         if self.params["symBar"]:
             maxLim = max(abs(self.max), abs(self.min))
             plt.clim(-maxLim, maxLim)
+            #plt.gci().colorbar.set_clim(-maxLim, maxLim)
+            #plt.gca().colorbar.set_clim(-maxLim, maxLim)
+       
         #Add optional contours
         if self.params["plotContours"] & (not self.varid[0:4] == 'dist'):
             saveFilename = saveFilename + self.params["varidContours"] + '_'

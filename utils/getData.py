@@ -2,6 +2,8 @@ import numpy as np
 import scipy as sp
 import postgkyl as pg
 from utils import getSlice
+from utils import genGradient
+
 from pathlib import Path
 
 def getData(self):
@@ -56,9 +58,13 @@ def getData(self):
             coords = data0.getGrid()
             if self.suffix == '.gkyl':
                 data = data[...,comp]
+                data = data[...,np.newaxis]
         else:
             raise RuntimeError("You have confused me! I don't know what to do with data of type {0}.".format(self.model))
-        self.time = data0.meta['time']
+        if self.suffix == '.gkyl':
+            self.time = 0.
+        else:
+            self.time = data0.meta['time']
         
         return coords, data
 
@@ -465,14 +471,336 @@ def getData(self):
         self.params["restFrame"] = tmp
         return coords, debye
         
+    def getExB(varid):
+        coords, bx = getGenField('bx')
+        coords, by = getGenField('by')
+        coords, bz = getGenField('bz')
+        coords, ex = getGenField('ex')
+        coords, ey = getGenField('ey')
+        coords, ez = getGenField('ez')
+        B = np.sqrt(bx**2 + by**2 + bz**2)
+        
+        if varid[-1] == 'x':
+            ExB = (ey*bz - by*ez)/B**2
+        elif varid[-1] == 'y': 
+            ExB = (ez*bx - bz*ex)/B**2
+        elif varid[-1] == 'z':
+            ExB = (ex*by - bx*ey)/B**2
+        else:
+            ExB = np.zeros(np.shape(bx))
+            
+        return coords, ExB
+    
+    def getCurvatureDrift(varid): #Curvature drift energization. Based on Appendix F of Juno et al 2021
+        coords, bx = getGenField('bx')
+        coords, by = getGenField('by')
+        coords, bz = getGenField('bz')
+        coords, ex = getGenField('ex')
+        coords, ey = getGenField('ey')
+        coords, ez = getGenField('ez')
+        B = np.sqrt(bx**2 + by**2 + bz**2)
+        bx = bx/B; by = by/B; bz = bz/B
+
+        dims = len(np.shape(bx)) - 1
+
+        dx = np.zeros(dims)
+        for d in range(dims):
+            dx[d] = coords[d][1] - coords[d][0]
+
+        [dbxdx,dbxdy,dbxdz] = genGradient.getGradient(bx,dx)
+        [dbydx,dbydy,dbydz] = genGradient.getGradient(by,dx)
+        [dbzdx,dbzdy,dbzdz] = genGradient.getGradient(bz,dx)
+
+        #kappa = b . (grad b) 
+        kappax = bx*dbxdx + by*dbxdy + bz*dbxdz 
+        kappay = bx*dbydx + by*dbydy + bz*dbydz
+        kappaz = bx*dbzdx + by*dbzdy + bz*dbzdz
+
+        tmp = self.params["restFrame"]
+        self.params["restFrame"] = 1 #Must be computed in the rest frame
+        spec = varid[varid.find('_')+1:]
+        coords, Pperp = getPressPerp(varid)
+        coords, Ppar = getPressPar(varid)
+        self.params["restFrame"] = tmp
+        specIndex = self.speciesFileIndex.index(spec)
+        q = self.q[specIndex]
+        coords, n = getDens('n_' + spec)
+        
+        drift = np.array([(Ppar - Pperp)*(by*kappaz - bz*kappay) / (q*n*B),\
+                     (Ppar - Pperp)*(bz*kappax - bx*kappaz) / (q*n*B),\
+                     (Ppar - Pperp)*(bx*kappay - by*kappax) / (q*n*B)])
+        E = np.array([ex, ey, ez])
+
+        suf = ['x', 'y', 'z']
+        id = varid[varid.find('_')-1]
+        if id in suf: #Component work
+            comp = suf.index(id)
+            nonComp = np.squeeze(np.where(np.arange(3) != comp))
+            for d in nonComp:
+                drift[d,...] = 0.
+
+        if varid.find('work') >= 0:
+            data =  q*n*np.sum(E*drift,axis=0)
+        else:
+            if not (id in suf):
+                data = np.zeros(np.shape(ex))
+                print('Warning, no component index specified. Returning zeros.')
+            else:
+                data = np.sum(drift,axis=0)
+        
+        return coords, data
+
+    def getGradBDrift(varid):  #GradB drift energization. Based on Appendix F of Juno et al 2021
+        coords, bx = getGenField('bx')
+        coords, by = getGenField('by')
+        coords, bz = getGenField('bz')
+        coords, ex = getGenField('ex')
+        coords, ey = getGenField('ey')
+        coords, ez = getGenField('ez')
+        B = np.sqrt(bx**2 + by**2 + bz**2)
+        bx = bx/B; by = by/B; bz = bz/B
+
+        dims = len(np.shape(bx)) - 1
+
+        dx = np.zeros(dims)
+        for d in range(dims):
+            dx[d] = coords[d][1] - coords[d][0]
+        [dbxdx,dbxdy,dbxdz] = genGradient.getGradient(bx/B,dx)
+        [dbydx,dbydy,dbydz] = genGradient.getGradient(by/B,dx)
+        [dbzdx,dbzdy,dbzdz] = genGradient.getGradient(bz/B,dx)
+
+        cBx = dbzdy - dbydz; cBy = dbxdz - dbzdx; cBz = dbydx - dbxdy; #curl (B / B^2)
+        bdotcB = bx*cBx + by*cBy + bz*cBz #b . curl (B / B^2), parallel component
+        cBx = cBx - bx*bdotcB; cBy = cBy - by*bdotcB; cBz = cBz - bz*bdotcB #Perp component only
+
+        spec = varid[varid.find('_')+1:]
+        tmp = self.params["restFrame"]
+        self.params["restFrame"] = 1 #Must be computed in the rest frame    
+        coords, Pperp = getPressPerp(varid)
+        self.params["restFrame"] = tmp
+        specIndex = self.speciesFileIndex.index(spec)
+        q = self.q[specIndex]
+        coords, n = getDens('n_' + spec)
+
+        drift = np.array([Pperp*cBx / (q*n),Pperp*cBy / (q*n),Pperp*cBz / (q*n)])
+        E = np.array([ex, ey, ez])
+
+        suf = ['x', 'y', 'z']
+        id = varid[varid.find('_')-1]
+        if id in suf: #Component work
+            comp = suf.index(id)
+            nonComp = np.squeeze(np.where(np.arange(3) != comp))
+            for d in nonComp:
+                drift[d,...] = 0.
+
+        if varid.find('work') >= 0:
+            data =  q*n*np.sum(E*drift,axis=0)
+        else:
+            if not (id in suf):
+                data = np.zeros(np.shape(ex))
+                print('Warning, no component index specified. Returning zeros.')
+            else:
+                data = np.sum(drift,axis=0)
+    
+        return coords, data
+
+    def getMagnetizationDrift(varid):  #Magnetization drift energization. Based on Appendix F of Juno et al 2021
+        coords, bx = getGenField('bx')
+        coords, by = getGenField('by')
+        coords, bz = getGenField('bz')
+        coords, ex = getGenField('ex')
+        coords, ey = getGenField('ey')
+        coords, ez = getGenField('ez')
+        B = np.sqrt(bx**2 + by**2 + bz**2)
+        bx = bx/B; by = by/B; bz = bz/B
+
+        dims = len(np.shape(bx)) - 1
+    
+        dx = np.zeros(dims)
+        for d in range(dims):
+            dx[d] = coords[d][1] - coords[d][0]
+            
+        tmp = self.params["restFrame"]
+        self.params["restFrame"] = 1 #Must be computed in the rest frame
+        spec = varid[varid.find('_')+1:]
+        coords, Pperp = getPressPerp(varid)
+        self.params["restFrame"] = tmp
+        [dMxdx,dMxdy,dMxdz] = genGradient.getGradient(-Pperp*bx/B,dx)
+        [dMydx,dMydy,dMydz] = genGradient.getGradient(-Pperp*by/B,dx)
+        [dMzdx,dMzdy,dMzdz] = genGradient.getGradient(-Pperp*bz/B,dx)
+    
+        cMx = dMzdy - dMydz; cMy = dMxdz - dMzdx; cMz = dMydx - dMxdy; #curl (M)
+        bdotcM = bx*cMx + by*cMy + bz*cMz #b . curl (M), parallel component
+        cMx = cMx - bx*bdotcM; cMy = cMy - by*bdotcM; cMz = cMz - bz*bdotcM #Perp component only
+
+        specIndex = self.speciesFileIndex.index(spec)
+        q = self.q[specIndex]
+        coords, n = getDens('n_' + spec)
+        drift = np.array([cMx / (q*n),  cMy / (q*n),  cMz / (q*n)])
+        E = np.array([ex, ey, ez])
+
+        suf = ['x', 'y', 'z']
+        id = varid[varid.find('_')-1]
+        if id in suf: #Component work
+            comp = suf.index(id)
+            nonComp = np.squeeze(np.where(np.arange(3) != comp))
+            for d in nonComp:
+                drift[d,...] = 0.
+
+        if varid.find('work') >= 0:
+            data =  q*n*np.sum(E*drift,axis=0)
+        else:
+            if not (id in suf):
+                data = np.zeros(np.shape(ex))
+                print('Warning, no component index specified. Returning zeros.')
+            else:
+                data = np.sum(drift,axis=0)
+
+        return coords, data
+    
+    def getDiamagneticDrift(varid):  #Diamagnetic drift energization. Based on Appendix F of Juno et al 2021
+        coords, bx = getGenField('bx')
+        coords, by = getGenField('by')
+        coords, bz = getGenField('bz')
+        coords, ex = getGenField('ex')
+        coords, ey = getGenField('ey')
+        coords, ez = getGenField('ez')
+        B = np.sqrt(bx**2 + by**2 + bz**2)
+        bx = bx/B; by = by/B; bz = bz/B
+
+        dims = len(np.shape(bx)) - 1
+         
+        dx = np.zeros(dims)
+        for d in range(dims):
+            dx[d] = coords[d][1] - coords[d][0]
+            
+        tmp = self.params["restFrame"]
+        self.params["restFrame"] = 1 #Must be computed in the rest frame
+        spec = varid[varid.find('_')+1:]
+        coords, Pperp = getPressPerp(varid)
+        self.params["restFrame"] = tmp
+        [dpdx,dpdy,dpdz] = genGradient.getGradient(Pperp,dx)
+        
+        specIndex = self.speciesFileIndex.index(spec)
+        q = self.q[specIndex]
+        coords, n = getDens('n_' + spec)
+        drift = np.array([ (by*dpdz - bz*dpdy) / (q*n*B),\
+                               (bz*dpdx - bx*dpdz) / (q*n*B),\
+                               (bx*dpdy - by*dpdx) / (q*n*B)])
+        E = np.array([ex, ey, ez])
+
+        suf = ['x', 'y', 'z']
+        id = varid[varid.find('_')-1]
+        if id in suf: #Component work
+            comp = suf.index(id)
+            nonComp = np.squeeze(np.where(np.arange(3) != comp))
+            for d in nonComp:
+                drift[d,...] = 0.
+
+        if varid.find('work') >= 0:
+            data =  q*n*np.sum(E*drift,axis=0)
+        else:
+            if not (id in suf):
+                data = np.zeros(np.shape(ex))
+                print('Warning, no component index specified. Returning zeros.')
+            else:
+                data = np.sum(drift,axis=0)
 
         
-    ####################################################################
+        return coords, data
+
+    def getAgyrotropicDrift(varid):  #Agyrotropic drift energization. Based on Appendix F of Juno et al 2021
+        coords, bx = getGenField('bx')
+        coords, by = getGenField('by')
+        coords, bz = getGenField('bz')
+        coords, ex = getGenField('ex')
+        coords, ey = getGenField('ey')
+        coords, ez = getGenField('ez')
+        B = np.sqrt(bx**2 + by**2 + bz**2)
+        bx = bx/B; by = by/B; bz = bz/B
+       
+        spec = varid[varid.find('_')+1:]
+        tmp = self.params["restFrame"]
+        self.params["restFrame"] = 1 #Must be computed in the rest frame
+        coords, Pperp = getPressPerp(varid)
+        coords, Ppar = getPressPar(varid)
+        coords, pxx = getPress('pxx_' + spec)
+        coords, pyy = getPress('pyy_' + spec)
+        coords, pzz = getPress('pzz_' + spec)
+        coords, pxy = getPress('pxy_' + spec)
+        coords, pxz = getPress('pxz_' + spec)
+        coords, pyz = getPress('pyz_' + spec)
+        self.params["restFrame"] = tmp
+        
+        pixx = pxx - Pperp - (Ppar - Pperp)*bx*bx;
+        piyy = pyy - Pperp - (Ppar - Pperp)*by*by;
+        pizz = pzz - Pperp - (Ppar - Pperp)*bz*bz;
+        pixy = pxy - (Ppar - Pperp)*bx*by;
+        pixz = pxz - (Ppar - Pperp)*bx*bz;
+        piyz = pyz - (Ppar - Pperp)*by*bz;
+            
+        dims = len(np.shape(bx)) - 1
+      
+        dx = np.zeros(dims)
+        for d in range(dims):
+            dx[d] = coords[d][1] - coords[d][0]
+        [dpixxdx,dpixxdy,dpixxdz] = genGradient.getGradient(pixx,dx)
+        [dpiyydx,dpiyydy,dpiyydz] = genGradient.getGradient(piyy,dx)
+        [dpizzdx,dpizzdy,dpizzdz] = genGradient.getGradient(pizz,dx)
+        [dpixydx,dpixydy,dpixydz] = genGradient.getGradient(pixy,dx)
+        [dpixzdx,dpixzdy,dpixzdz] = genGradient.getGradient(pixz,dx)
+        [dpiyzdx,dpiyzdy,dpiyzdz] = genGradient.getGradient(piyz,dx)
+
+
+        specIndex = self.speciesFileIndex.index(spec)
+        q = self.q[specIndex]
+        coords, n = getDens('n_' + spec)
+        drift = np.array([ (by*(dpixzdx + dpiyzdy + dpizzdz) - bz*(dpixydx + dpiyydy + dpiyzdz)) / (q*n*B),\
+                               (bz*(dpixxdx + dpixydy + dpixzdz) - bx*(dpixzdx + dpiyzdy + dpizzdz)) / (q*n*B),\
+                               (bx*(dpixydx + dpiyydy + dpiyzdz) - by*(dpixxdx + dpixydy + dpixzdz)) / (q*n*B)])
+        E = np.array([ex, ey, ez])
+
+        suf = ['x', 'y', 'z']
+        id = varid[varid.find('_')-1]
+        if id in suf: #Component work
+            comp = suf.index(id)
+            nonComp = np.squeeze(np.where(np.arange(3) != comp))
+            for d in nonComp:
+                drift[d,...] = 0.
+
+        if varid.find('work') >= 0:
+            data =  q*n*np.sum(E*drift,axis=0)
+        else:
+            if not (id in suf):
+                data = np.zeros(np.shape(ex))
+                print('Warning, no component index specified. Returning zeros.')
+            else:
+                data = np.sum(drift,axis=0)
+        
+       
+            
+        return coords, data
+
+
+    ###################################################################
     #End read functions
     #################################################################### 
     
     if varidGlobal[0:4] == 'dist':
         coords, data = getDist(varidGlobal)
+    elif  varidGlobal.find('drift') >= 0:
+        if varidGlobal[0:3] == 'exb':
+            coords, data = getExB(varidGlobal)
+        elif varidGlobal[0:9] == 'curvature':
+            coords, data = getCurvatureDrift(varidGlobal)
+        elif varidGlobal[0:5] == 'gradb':
+            coords, data = getGradBDrift(varidGlobal)
+        elif varidGlobal[0:6] == 'diamag':
+            coords, data = getDiamagneticDrift(varidGlobal)
+        elif varidGlobal[0:3] == 'mag':
+            coords, data = getMagnetizationDrift(varidGlobal)
+        elif varidGlobal[0:5] == 'agyro':
+            coords, data = getAgyrotropicDrift(varidGlobal)
     elif varidGlobal[0:4] == 'beta':
         coords, data = getBeta(varidGlobal)
     elif varidGlobal[0] == 'b': #magnetic fields
@@ -517,7 +845,7 @@ def getData(self):
     elif varidGlobal[0:3] == 'mag':
         if varidGlobal[3] == 'e': #|E|
             coords, data = getMagE(varidGlobal)
-        elif varidGlobal[3] == 'b': #|B|
+        else:# varidGlobal[3] == 'b': #|B|
             coords, data = getMagB(varidGlobal)
     elif varidGlobal[0:5] == 'agyro': #Swisdak 2015 agyrotropy
         coords, data = getAgyro(varidGlobal)
@@ -541,7 +869,7 @@ def getData(self):
         data = [0.]
         print('Unrecognized variable name {0}! You have confused me, so no data for you!'.format(varidGlobal))
 
-    
+   
     dims = len(np.shape(data)) - 1
     # Center the grid values.
     self.dx = np.zeros(dims)

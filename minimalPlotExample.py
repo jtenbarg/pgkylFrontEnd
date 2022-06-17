@@ -4,7 +4,7 @@ from utils import gkPlot as plt
 #End Preamble###############
 
 #Tested to handle g0 and g2: VM, 5M, 10M
-#Requires a _params.txt file in your data directory or the form gkeyllOutputBasename_params.txt! See example_params.txt for formatting
+#Requires a _params.txt file in your data directory of the form gkeyllOutputBasename_params.txt! See example_params.txt for formatting
 paramsFile = '/Users/jtenbarg/Desktop/runs/gemEddyv43/Data/gem_params.txt' 
 
 
