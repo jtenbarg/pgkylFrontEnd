@@ -7,7 +7,6 @@ params = {} #Initialize dictionary to store plotting and other parameters
 #Tested to handle g0 and g2: VM, 5M, 10M
 #Requires a _params.txt file in your data directory of the form gkeyllOutputBasename_params.txt! See example_params.txt for formatting
 paramsFile = '/Users/jtenbarg/Desktop/runs/gemEddyv43/Data/gem_params.txt' 
-
 fileNum = 18
 
 suffix = '.bp'
@@ -32,12 +31,12 @@ params["timeLabel"] = '$\Omega_{ci}^{-1}$'
 
 params["plotContours"] = 1 #Overplot contours of the following
 params["varidContours"] = 'psi' #Plot contours of this variable
-params["colorContours"] = 'k' #Color of contours
+params["colorContours"] = 'w' #Color of contours
 params["numContours"] = 10 #Number of contours
 params["axisEqual"] = 1 #Makes axes equal for 2D
-params["symBar"] = 1 #Force colorbar to be symmetric about 0
+params["symBar"] = 0 #Force colorbar to be symmetric about 0
 params["displayTime"] = 1 #Show time of frame
-params["colormap"] = 'seismic' #Colormap for 2D plots: inferno*, seismic (red-blue), any matplotlib colormap
+params["colormap"] = 'inferno' #Colormap for 2D plots: inferno*, seismic (red-blue), any matplotlib colormap
 params["absVal"] = 0 #Take absolute value of data
 params["log"] = 0 #Take log_10 of data
 params["logThresh"] = -4 #Limit lower value of log_10(data)
