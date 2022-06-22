@@ -1,6 +1,12 @@
 import numpy as np
 import adios
 
+def _is_gkyl(file_name : str, offset : int) -> bool:
+  magic = np.fromfile(file_name, dtype=np.dtype('b'), count=5, offset=offset)
+  if np.array_equal(magic, [103, 107, 121, 108,  48]):
+    return True
+  else:
+    return False
 
 def preSlice(self, filename):
     #Create temporary grid from adios attributes
@@ -12,12 +18,28 @@ def preSlice(self, filename):
         fh.close()
       
     elif self.suffix == '.gkyl':
+        file_type = 1
+        version = 0
         dti8 = np.dtype('i8')
         dtf = np.dtype('f8')
         doffset = 8
         offset = 0
+        if _is_gkyl(filename, offset):
+            offset += 5
+            version = np.fromfile(filename, dtype=dti8, count=1, offset=offset)[0]
+            offset += 8
+
+            file_type = np.fromfile(filename, dtype=dti8, count=1, offset=offset)[0]
+            offset += 8
+
+            meta_size = np.fromfile(filename, dtype=dti8, count=1, offset=offset)[0]
+            offset += 8
+            # read meta
+            offset += meta_size
+
+
         # read real-type
-        realType = np.fromfile(filename, dtype=dti8, count=1)[0]
+        realType = np.fromfile(filename, dtype=dti8, count=1, offset=offset)[0]
         if realType == 1:
             dtf = np.dtype('f4')
             doffset = 4
