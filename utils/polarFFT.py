@@ -63,8 +63,9 @@ def polarFFTBin(k, bgDir, polar_index, fft_matrix):
     
         for i in range(0, nkp[0]):
             for j in range(0, nkp[1]):
-                ikperp = polar_index[i,j]
-                fft_isok[ikperp] = fft_isok[ikperp] + np.abs(fft_matrix[i,j])**2
+                if not (i == 0 and j == 0):
+                    ikperp = polar_index[i,j]   
+                    fft_isok[ikperp] = fft_isok[ikperp] + np.abs(fft_matrix[i,j])**2
     else:
         nkb = bgDir
         fft_isok = np.zeros(nkpolar, nkb)
