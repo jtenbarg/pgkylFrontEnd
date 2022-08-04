@@ -57,6 +57,7 @@ def getData(self):
             data = data0.getValues()
             coords = data0.getGrid()
             if self.suffix == '.gkyl':
+
                 data = data[...,comp]
                 data = data[...,np.newaxis]
         else:
@@ -311,10 +312,19 @@ def getData(self):
         spec = varid[varid.find('_')+1:]
       
         if self.params["restFrame"]:
-            coords, nu = getGenMom('u' + varid[1] + '_' + spec)
-            coords, nv = getGenMom('u' + varid[2] + '_' + spec)
-            coords, n = getDens('n' + '_' + spec)
-            data = data - (nu*nv) / n
+            if self.model == '5m':
+                coords, nux = getGenMom('ux_' + spec)
+                coords, nuy = getGenMom('uy_' + spec)
+                coords, nuz = getGenMom('uz_' + spec)
+                coords, n = getDens('n' + '_' + spec)
+                data = data - 0.5*(nux*nux + nuy*nuy + nuz*nuz) / n
+                if varid[1] != 'x' and  varid[2] != 'x':
+                    data = np.zeros(np.shape(n))
+            else:
+                coords, nu = getGenMom('u' + varid[1] + '_' + spec)
+                coords, nv = getGenMom('u' + varid[2] + '_' + spec)
+                coords, n = getDens('n' + '_' + spec)
+                data = data - (nu*nv) / n
         specIndex = self.speciesFileIndex.index(spec)
         data = data*self.mu[specIndex]
         return coords, data
@@ -359,7 +369,12 @@ def getData(self):
         spec = '_' + varid[varid.find('_')+1:]
         coords, trp = getTrP(spec)
         coords, n = getDens('n' + spec)
-        data = (trp / n) / self.dimsV
+        if self.model == '5m':
+            data = (trp / n) * 2 / 3
+        elif self.model == '10m':
+            data = (trp / n) / 3
+        else:
+            data = (trp / n) / self.dimsV
         return coords, data
 
     def getTempPar(varid): #Return Tpar = Ppar / n
