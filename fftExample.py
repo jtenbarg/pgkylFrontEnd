@@ -30,6 +30,7 @@ paramFile = '/Users/jtenbarg/Desktop/runs/gemEddyv43/Data/gem_params.txt'
 paramFile = '/Users/jtenbarg/Desktop/Runs/ot3D_2D/ot3D_params.txt'
 paramFile = '/Users/jtenbarg/Desktop/Runs/SULI2022/ot5M_128/ot_g0_5M-params.txt'
 paramFile = '/Users/jtenbarg/Desktop/Runs/SULI2022/ot5M_KEP_v1/5m_kep_ot-params.txt'
+paramFile = '/Users/jtenbarg/Desktop/Runs/SULI2022/ot_g0_5M_256pi_cfl1/ot_g0_5M-params.txt'
 
 fileNum = 100
 suffix = '.gkyl'

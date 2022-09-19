@@ -62,7 +62,6 @@ def preSlice(self, filename):
     
     dims = len(lower)
     coords = [np.linspace(lower[d], upper[d], cells[d]+1) for d in range(dims)]
-      
     axNorm = self.params["axesNorm"]
     zs = []
     for d in range(6):
@@ -71,13 +70,18 @@ def preSlice(self, filename):
         else:
             idxs = np.searchsorted(coords[d], [self.params["lowerLimits"][d]*axNorm[d], \
                                                      self.params["upperLimits"][d]*axNorm[d]])
+            if not (self.params["lowerLimits"][d]*axNorm[d] in coords[d]) and idxs[0] != 0:
+                idxs[0] -= 1
+            if not (self.params["upperLimits"][d]*axNorm[d] in coords[d]) and idxs[0] != 0:
+                idxs[1] -= 1  
+
             #Handle edge cases
             if idxs[0] >= cells[d]: idxs[0] = idxs[0]-2
             if idxs[1] >=  cells[d]: idxs[1] = idxs[1]-1
             if idxs[0] == idxs[1]: idxs[1] += 1
            
             zs.append('{0}:{1}'.format(idxs[0], idxs[1]))
-    
+
     return zs
     
 
@@ -87,25 +91,28 @@ def postSlice(self):
     axNorm = self.params["axesNorm"]
     idx = None
     idxValues = [slice(0, self.data.shape[d]) for d in range(dims)]
+    #print(self.coords[0]/axNorm[0],self.coords[1]/axNorm[1])
     for d in range(dims):
-       
+        
         idxs = np.searchsorted(coords[d], [self.params["lowerLimits"][d]*axNorm[d], \
                                                    self.params["upperLimits"][d]*axNorm[d]])
+        
+
         #Handle edge cases
         if idxs[0] >= len(coords[d]): idxs[0] = idxs[0]-1
         if idxs[0] == idxs[1]: idxs[1] += 1
         idxValues[d] = slice(idxs[0], idxs[1])
         
         self.coords[d] = self.coords[d][idxValues[d]]
-       
+    #print(self.coords[0]/axNorm[0],self.coords[1]/axNorm[1])
     self.data = np.squeeze(self.data[tuple(idxValues)])
-    
+    axesNorm = self.params["axesNorm"].copy()
     for d in reversed(range(dims)):
         if len(self.coords[d]) == 1:
             del self.coords[d]
-            del self.params["axesNorm"][d]
+            del axesNorm[d]
             self.dx = np.delete(self.dx, d)
-    #self.coords = np.squeeze(self.coords)
+    self.params["axesNorm"] = axesNorm
     
     #dims = len(np.shape(np.squeeze(self.data)))
     #if dims == 1:

@@ -59,7 +59,7 @@ def gkPlot(self,show=1,save=0):
    
         
     if self.params["displayTime"] & (self.suffix != '.gkyl'):
-        plt.title("$t={:.4f}$".format(self.time * self.params["timeNorm"]) + self.params["timeLabel"], loc='right')
+        plt.title(r"$t={:.4f}$".format(self.time * self.params["timeNorm"]) + self.params["timeLabel"], loc='right')
     
     if save:
         saveFilename = saveFilename + format(self.fileNum, '04') + '.png'

@@ -11,7 +11,7 @@ class gkData:
         self.fileNum = fileNum
         self.suffix = suffix
         self.varid = varid
-        self.params = params
+        self.params = params.copy()
 
         self.basis = ''
         self.model = ''
@@ -50,7 +50,7 @@ class gkData:
         if (isinstance(self.params.get('axesNorm'), type(None))): #Default axes normalization
             self.params["axesNorm"] = [1., 1., 1., 1., 1., 1.]
         if (isinstance(self.params.get('axesLabels'), type(None))): #Default axes lables
-            self.params["axesLabels"] = ['z0', 'z1', 'z2']
+            self.params["axesLabels"] = [r'z0', r'z1', r'z2']
         if (isinstance(self.params.get('restFrame'), type(None))): #Default restFrame = false if not specified
             self.params["restFrame"] = 0
         if (isinstance(self.params.get('absVal'), type(None))): #Default absVal = false if not specified
@@ -75,6 +75,8 @@ class gkData:
             self.params["displayTime"] = 0
         if (isinstance(self.params.get('colormap'), type(None))): #Default colormap
             self.params["colormap"] = 'inferno'
+        if (isinstance(self.params.get('fieldAlign'), type(None))): #Default fieldAlign for FPC
+            self.params["fieldAlign"] = 0
 
         self.varid = self.varid.lower()  #Convert varid to all lower case, just in case
             

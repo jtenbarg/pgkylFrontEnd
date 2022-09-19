@@ -67,7 +67,9 @@ def getData(self):
             self.time = self.fileNum
         else:
             self.time = data0.meta['time']
-        
+            if self.time is None:
+                self.time = 0.
+
         return coords, data
 
     def getDist(varid): #Returns particle distribution
@@ -562,7 +564,6 @@ def getData(self):
         specIndex = self.speciesFileIndex.index(spec)
         q = self.q[specIndex]
         coords, n = getDens('n_' + spec)
-
         drift = np.array([(Ppar - Pperp)*(by*kappaz - bz*kappay) / (q*n*B),\
                      (Ppar - Pperp)*(bz*kappax - bx*kappaz) / (q*n*B),\
                      (Ppar - Pperp)*(bx*kappay - by*kappax) / (q*n*B)])
