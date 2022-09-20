@@ -25,43 +25,43 @@ plt.rcParams["axes.labelweight"] = "bold"
 #Tested to handle g0 and g2: VM, 5M, 10M
 #Requires a _params.txt file in your data directory of the form gkeyllOutputBasename_params.txt! See example_params.txt for formatting
 paramFile = '/Users/jtenbarg/Desktop/runs/gemEddyv43/DataMod/gem_params.txt' 
-#paramFile  = '/Users/jtenbarg/Desktop/runs/ECDIKap2D3s3/Data2/ECDI_params.txt'
+paramFile  = '/Users/jtenbarg/Desktop/runs/ECDIKap2D3s3/Data2/ECDI_params.txt'
 
 
-fileNumStart = 15
-fileNumEnd = 15
+fileNumStart = 60
+fileNumEnd = 60
 fileSkip = 1
 suffix = '.bp'
 varid = ''
 spec = 'elc'
 nTau = 0 #Frames over which to average. 0 or 1 does no averaging. Note centered ==> nTau must be odd and >= 3 
-avgDir = 0 #backwards (-1), forward (1), or centered (0). 
+avgDir = 0 #Backwards (-1), forward (1), or centered (0). Endpoints treated with telescoping windows.
 
-plotAny = 1
-plotReducedFPCvsTime = 0 #Must have plotAny = 1
+plotAny = 1 #Must have plotAny = 1 to plot any of the following
+plotReducedFPCvsTime = 0 #Plot 1v reduced FPCs as function of time.
 plotReducedFPCatTime1D = -1 #Plot 1v reduced FPCs at this t. Set to -1 to ignore
-plotReducedFPCatTime2D = -1 #Plot 1v reduced FPCs at this t. Set to -1 to ignore
+plotReducedFPCatTime2D = 60 #Plot 2v reduced FPCs at this t. Set to -1 to ignore
 saveFigs = 0
 showFigs = 1
 
 tmp = gkData.gkData(paramFile,fileNumStart,suffix,varid,params) #Initialize constants for normalization
 
 #below limits [z0, z1, z2,...] normalized to params["axesNorm"]
-params["lowerLimits"] = [-2.52e0,  -0.e6, -1.e6, -1.e6, -1.e6, -1e6] 
-params["upperLimits"] = [-2.52e0,  0.e6,  1.e6,  1.e6,  1.e6,  1.e6]
-params["fieldAlign"] = 0 #Align FPC to the magnetic field. Only use for 3V data.
-params["driftAlign"] = 'curvatureDrift' #Align FPC to a drift. Only use for 3V data.
-#params["frameXform"] = [1,1,1] #Transform frames, including electric field.
+params["lowerLimits"] = [0e0,  -1.e6, -1.e6, -1.e6, -1.e6, -1e6] 
+params["upperLimits"] = [0e0,  1.e6,  1.e6,  1.e6,  1.e6,  1.e6]
+params["fieldAlign"] = 0 #Align FPC to the local magnetic field. Only use for 3V data.
+#params["driftAlign"] = 'curvatureDrift' #Rotate FPC with B and drift. Only use for 3V data.
+#params["frameXform"] = [1,1,1] #Transform frames, including electric field. This must be moved to the timeloop for time dependent xforms
 
 #Define species to normalize and lengths/times 
-refSpeciesAxesConf = 'ion'; refSpeciesAxesVel = 'elc'
+refSpeciesAxesConf = 'elc'; refSpeciesAxesVel = 'elc'
 refSpeciesTime = 'elc'
 speciesIndexAxesConf = tmp.speciesFileIndex.index(refSpeciesAxesConf)
 speciesIndexAxesVel = tmp.speciesFileIndex.index(refSpeciesAxesVel)
 speciesIndexTime = tmp.speciesFileIndex.index(refSpeciesTime)
-params["axesNorm"] = [tmp.d[speciesIndexAxesConf], tmp.d[speciesIndexAxesConf], tmp.vt[speciesIndexAxesVel], tmp.vt[speciesIndexAxesVel], tmp.vt[speciesIndexAxesVel]]
+params["axesNorm"] = [tmp.d[speciesIndexAxesConf], tmp.vt[speciesIndexAxesVel], tmp.vt[speciesIndexAxesVel], tmp.vt[speciesIndexAxesVel]]
 params["timeNorm"] = tmp.omegaC[speciesIndexTime]
-params["axesLabels"] = ['$x/d_p$', '$y/d_p$', '$v_0/v_t$', '$v_1/v_t$', '$v_2/v_t$']
+params["axesLabels"] = ['$x/d_p$', '$v_0/v_t$', '$v_1/v_t$', '$v_2/v_t$']
 params["timeLabel"] = '$/ \Omega_{ci}$'
 params["colormap"] = 'bwr'#Colormap for 2D plots: inferno*, bwr (red-blue), any matplotlib colormap
 
@@ -103,7 +103,7 @@ for it in range(nt):
 		for i in range(dimsV):
 			p1v = 1.
 			for j in range(len(indCombos1V[0])):
-				p1v *= dv[indCombos1V[i][j]]
+				p1v *= coords[indCombos1V[i][j]][1] - coords[indCombos1V[i][j]][0]
 
 			dvCombo1V.append(p1v)
 del fpcTmp
@@ -124,7 +124,6 @@ dt = 1.
 if nt > 1:
 	dt = t[1] - t[0]
 dw = dw*dt
-
 
 if plotAny:
 	t = t*params["timeNorm"] #Normalize time
@@ -295,49 +294,6 @@ if plotAny:
 					print('Figure written to ',saveFilename)
 				if showFigs:
 					plt.show()
-				
-		
-		if False:
-			for j in range(dimsV):
-				pData = np.sum(fpc[it],axis=(0,j+1))*dv[j]
-				d = list(set(VInd) - set([j]))
-				maxData = np.max(np.abs(pData))
-				
-				title = '$C($' + params["axesLabels"][d[0]+indShift] + ',' + params["axesLabels"][d[1]+indShift] + '$)$'
-
-				plt.figure(figsize=(12,8))
-				c1 = plt.pcolormesh(coordsPlot[d[0]]/axNorm[d[0]+indShift], coordsPlot[d[1]]/axNorm[d[1]+indShift], np.transpose(pData), vmin=-maxData, vmax=maxData, cmap = params["colormap"], shading="gouraud")
-				plt.xlabel(params["axesLabels"][d[0]+indShift])
-				plt.ylabel(params["axesLabels"][d[1]+indShift])
-				plt.colorbar(c1)
-				plt.title(title)
-				plt.axis('equal')
-				if saveFigs:
-					saveFilename = figBase + '_Red2V_fTot_v' + str(d) + '_frame=' + str(ts[it]) + '.png'
-					plt.savefig(saveFilename, dpi=300)
-					print('Figure written to ',saveFilename)
-				if showFigs:
-					plt.show()
-		elif False:
-			pData = np.sum(fpc[it],axis=0)
-			d = VInd
-			maxData = np.max(np.abs(pData))
-				
-			title = '$C($' + params["axesLabels"][d[0]+indShift] + ',' + params["axesLabels"][d[1]+indShift] + '$)$'
-
-			plt.figure(figsize=(12,8))
-			c1 = plt.pcolormesh(coordsPlot[d[0]]/axNorm[d[0]+indShift], coordsPlot[d[1]]/axNorm[d[1]+indShift], np.transpose(pData), vmin=-maxData, vmax=maxData, cmap = params["colormap"], shading="gouraud")
-			plt.xlabel(params["axesLabels"][d[0]+indShift])
-			plt.ylabel(params["axesLabels"][d[1]+indShift])
-			plt.colorbar(c1)
-			plt.title(title)
-			plt.axis('equal')
-			if saveFigs:
-				saveFilename = figBase + '_Red2V_fTot_v' + str(d) + '_frame=' + str(ts[it]) + '.png'
-				plt.savefig(saveFilename, dpi=300)
-				print('Figure written to ',saveFilename)
-			if showFigs:
-				plt.show()
 				
 
 				
