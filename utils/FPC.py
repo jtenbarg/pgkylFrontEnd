@@ -120,4 +120,32 @@ def computeFPC(paramFile,fileNum,suffix,spec,params):
 
 	
 	return coords, fpc, t
-	
+
+def computeFPCAvg(FPCin, nTau, avgDir):
+	dimsFPC = np.shape(FPCin)
+	nt = dimsFPC[0]
+
+	FPCout = []; winMax = nTau - 1
+	for it in range(nt):
+		if avgDir == -1:
+			winL = max(0,it - winMax)
+			winU = it+1	
+		elif avgDir == 0:
+			win = int(np.floor(winMax / 2))
+			winL = max(0,it - win)
+			winU = min(it + 1+ win, nt)
+		elif avgDir == 1:
+			winL = it
+			winU = min(it+1 + winMax, nt)	
+		else:
+			winL = it; winU = it+1
+			print("Unrecognized summing direction! avgDir must be one of -1,0,1.")
+			
+		FPCout.append(np.mean(FPCin[winL:winU],axis=0))
+
+	return FPCout
+
+
+
+
+

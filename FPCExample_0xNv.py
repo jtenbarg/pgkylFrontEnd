@@ -3,8 +3,8 @@ from utils import gkData
 from utils import gkPlot as plt
 from utils import FPC as FPC
 import itertools
-
 import matplotlib.pyplot as plt
+
 params = {} #Initialize dictionary to store plotting and other parameters
 SMALL_SIZE = 14
 MEDIUM_SIZE = 16
@@ -28,14 +28,17 @@ paramFile = '/Users/jtenbarg/Desktop/runs/gemEddyv43/DataMod/gem_params.txt'
 #paramFile  = '/Users/jtenbarg/Desktop/runs/ECDIKap2D3s3/Data2/ECDI_params.txt'
 
 
-fileNumStart = 10
+fileNumStart = 15
 fileNumEnd = 15
 fileSkip = 1
 suffix = '.bp'
 varid = ''
 spec = 'elc'
+nTau = 0 #Frames over which to average. 0 or 1 does no averaging. Note centered ==> nTau must be odd and >= 3 
+avgDir = 0 #backwards (-1), forward (1), or centered (0). 
+
 plotAny = 1
-plotReducedFPCvsTime = 1 #Must have plotAny = 1
+plotReducedFPCvsTime = 0 #Must have plotAny = 1
 plotReducedFPCatTime1D = -1 #Plot 1v reduced FPCs at this t. Set to -1 to ignore
 plotReducedFPCatTime2D = -1 #Plot 1v reduced FPCs at this t. Set to -1 to ignore
 saveFigs = 0
@@ -48,10 +51,11 @@ params["lowerLimits"] = [-2.52e0,  -0.e6, -1.e6, -1.e6, -1.e6, -1e6]
 params["upperLimits"] = [-2.52e0,  0.e6,  1.e6,  1.e6,  1.e6,  1.e6]
 params["fieldAlign"] = 0 #Align FPC to the magnetic field. Only use for 3V data.
 params["driftAlign"] = 'curvatureDrift' #Align FPC to a drift. Only use for 3V data.
+#params["frameXform"] = [1,1,1] #Transform frames, including electric field.
 
 #Define species to normalize and lengths/times 
 refSpeciesAxesConf = 'ion'; refSpeciesAxesVel = 'elc'
-refSpeciesTime = 'ion'
+refSpeciesTime = 'elc'
 speciesIndexAxesConf = tmp.speciesFileIndex.index(refSpeciesAxesConf)
 speciesIndexAxesVel = tmp.speciesFileIndex.index(refSpeciesAxesVel)
 speciesIndexTime = tmp.speciesFileIndex.index(refSpeciesTime)
@@ -66,7 +70,6 @@ params["colormap"] = 'bwr'#Colormap for 2D plots: inferno*, bwr (red-blue), any 
 ts = np.arange(fileNumStart, fileNumEnd+1, fileSkip)
 nt = len(ts); t = np.zeros(nt); fpc  = []
 for it in range(nt):
-	#params["frameXform"] = [1,1,1] #Transform frames, including electric field.
 	print('Working on frame {0} of {1}'.format(it+1,nt))
 	[coords, fpcTmp, t[it]] = FPC.computeFPC(paramFile,ts[it],suffix,spec,params)
 	fpc.append(fpcTmp)
@@ -94,27 +97,29 @@ for it in range(nt):
 			dv.append(vCoords[d][1] - vCoords[d][0])
 		del E
 		
-		indCombos1V = list(itertools.combinations(VInd,min(2, dimsV)))
+		#Find indicies to integrate to reduce to 1V and value of dv for reduced FPCs 
+		indCombos1V = list(itertools.combinations(VInd,max(0, dimsV-1)))
 		dvCombo1V = []
-		indCombos2V = list(itertools.combinations(VInd,min(1, dimsV)))
-		dvCombo2V = []
-		#Find value of dv for reduced FPCs 
-		for i in reversed(range(dimsV)):
-			p1v = 1.; p2v = 1
+		for i in range(dimsV):
+			p1v = 1.
 			for j in range(len(indCombos1V[0])):
 				p1v *= dv[indCombos1V[i][j]]
 
-			for j in range(len(indCombos2V[0])):
-				p2v *= dv[indCombos2V[i][j]]
-
 			dvCombo1V.append(p1v)
-			dvCombo2V.append(p2v)
+del fpcTmp
 
-	
+#Perform time average
+if nTau > 0:
+	fpc = FPC.computeFPCAvg(fpc, nTau, avgDir)
+
+#Compute dw/dt and dw
+dwdt = np.zeros((nt,3)); dw = np.zeros((nt,3));
+for it in range(nt):
 	for d in range(dimsV):
-		dwdt[it][d] = np.sum(fpcTmp[d],axis=tuple(VInd))*np.prod(dv)
+		dwdt[it][d] = np.sum(fpc[it][d],axis=tuple(VInd))*np.prod(dv)
 
 	dw[it] = np.sum(dwdt, axis=0)
+
 dt = 1.
 if nt > 1:
 	dt = t[1] - t[0]
@@ -169,6 +174,7 @@ if plotAny:
 	if showFigs:
 		plt.show()
 
+	#Plot 1v reduced FPCs vs time
 	if plotReducedFPCvsTime:
 		axNorm = params["axesNorm"]; indShift = tmp.dimsX
 		titles = ['$C_0$', '$C_1$', '$C_2$' , '$C$']
@@ -233,16 +239,47 @@ if plotAny:
 		
 
 	#Plot 2D FPCs at given time
-	if plotReducedFPCatTime2D >= 0:
+	if plotReducedFPCatTime2D >= 0 and dimsV >= 2:
 		tplot = plotReducedFPCatTime2D; it = np.searchsorted(ts, tplot)
 		axNorm = params["axesNorm"]; indShift = tmp.dimsX
 
-		CSub = ['0','1','2']
-		for i in range(dimsV):
-			for j in range(dimsV):
-				pData = np.sum(fpc[it][i],axis=j)*dv[j]
+		CSub = ['0','1','2', '{tot}']
+		for i in range(dimsV+1):
+			if dimsV == 3:
+				for j in range(dimsV):
+					if i > dimsV-1:
+						pData = np.sum(fpc[it],axis=0)
+						pData = np.sum(pData,axis=j)*dv[j]
+					else:
+						pData = np.sum(fpc[it][i],axis=j)*dv[j]
+					d = list(set(VInd) - set([j]))
+				
+					maxData = np.max(np.abs(pData))
+				
+					title = '$C_' + CSub[i] + '($' + params["axesLabels"][d[0]+indShift] + ',' + params["axesLabels"][d[1]+indShift] + '$)$'
+					plt.figure(figsize=(12,8))
+					c1 = plt.pcolormesh(coordsPlot[d[0]]/axNorm[d[0]+indShift], coordsPlot[d[1]]/axNorm[d[1]+indShift], np.transpose(pData), vmin=-maxData, vmax=maxData, cmap = params["colormap"], shading="gouraud")
+					plt.xlabel(params["axesLabels"][d[0]+indShift])
+					plt.ylabel(params["axesLabels"][d[1]+indShift])
+					plt.colorbar(c1)
+					plt.title(title)
+					plt.axis('equal')
+
+					if saveFigs:
+						saveFilename = figBase + '_Red2V_f' + CSub[i]  + '_v' + str(d) + '_frame=' + str(ts[it]) + '.png'
+						plt.savefig(saveFilename, dpi=300)
+						print('Figure written to ',saveFilename)
+					if showFigs:
+						plt.show()
+			else:
+				if i > dimsV-1:
+					pData = np.sum(fpc[it],axis=0)
+				else:
+					pData = fpc[it][i]
+				d = VInd
+
 				maxData = np.max(np.abs(pData))
-				d = list(set(VInd) - set([j]))
+
 				title = '$C_' + CSub[i] + '($' + params["axesLabels"][d[0]+indShift] + ',' + params["axesLabels"][d[1]+indShift] + '$)$'
 				plt.figure(figsize=(12,8))
 				c1 = plt.pcolormesh(coordsPlot[d[0]]/axNorm[d[0]+indShift], coordsPlot[d[1]]/axNorm[d[1]+indShift], np.transpose(pData), vmin=-maxData, vmax=maxData, cmap = params["colormap"], shading="gouraud")
@@ -253,16 +290,19 @@ if plotAny:
 				plt.axis('equal')
 
 				if saveFigs:
-					saveFilename = figBase + '_Red2V_f' + str(i) + '_v' + str(d) + '_frame=' + str(ts[it]) + '.png'
+					saveFilename = figBase + '_Red2V_f' + CSub[i] + '_v' + str(d) + '_frame=' + str(ts[it]) + '.png'
 					plt.savefig(saveFilename, dpi=300)
 					print('Figure written to ',saveFilename)
 				if showFigs:
 					plt.show()
-
-		for j in range(dimsV):
+				
+		
+		if False:
+			for j in range(dimsV):
 				pData = np.sum(fpc[it],axis=(0,j+1))*dv[j]
-				maxData = np.max(np.abs(pData))
 				d = list(set(VInd) - set([j]))
+				maxData = np.max(np.abs(pData))
+				
 				title = '$C($' + params["axesLabels"][d[0]+indShift] + ',' + params["axesLabels"][d[1]+indShift] + '$)$'
 
 				plt.figure(figsize=(12,8))
@@ -278,6 +318,27 @@ if plotAny:
 					print('Figure written to ',saveFilename)
 				if showFigs:
 					plt.show()
+		elif False:
+			pData = np.sum(fpc[it],axis=0)
+			d = VInd
+			maxData = np.max(np.abs(pData))
+				
+			title = '$C($' + params["axesLabels"][d[0]+indShift] + ',' + params["axesLabels"][d[1]+indShift] + '$)$'
+
+			plt.figure(figsize=(12,8))
+			c1 = plt.pcolormesh(coordsPlot[d[0]]/axNorm[d[0]+indShift], coordsPlot[d[1]]/axNorm[d[1]+indShift], np.transpose(pData), vmin=-maxData, vmax=maxData, cmap = params["colormap"], shading="gouraud")
+			plt.xlabel(params["axesLabels"][d[0]+indShift])
+			plt.ylabel(params["axesLabels"][d[1]+indShift])
+			plt.colorbar(c1)
+			plt.title(title)
+			plt.axis('equal')
+			if saveFigs:
+				saveFilename = figBase + '_Red2V_fTot_v' + str(d) + '_frame=' + str(ts[it]) + '.png'
+				plt.savefig(saveFilename, dpi=300)
+				print('Figure written to ',saveFilename)
+			if showFigs:
+				plt.show()
+				
 
 				
 		
