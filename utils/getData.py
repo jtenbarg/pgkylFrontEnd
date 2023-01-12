@@ -20,7 +20,6 @@ def getData(self):
             momvars = ['n', 'ux', 'uy', 'uz','pxx', 'pxy', 'pxz', 'pyy', 'pyz', 'pzz']
     elif self.dimsV==1:
         momvars = ['ux']
-        fieldvars = ['ex','potE','potB']
         pvars = ['pxx']
         qvars = ['qxxx']
     elif self.dimsV==2:
