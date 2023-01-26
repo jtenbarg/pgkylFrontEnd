@@ -35,6 +35,9 @@ Note that case is ignored
 -Gyroradius, sqrt(2 T_perp / m) / (|q| B / m): rho_spec
 -Inertial length, c / omega_P: inertiallength_spec
 -ExB drift component: exbDrifti
+-Poynting vector: poyntingi or poynting for |ExB|
+-Cross helicity, u_spec.b / .5(u_spec^2 + b^2): crossHelicity_spec
+
 --Drifts: Add work to the name to calculate q n E dotted into work, e.g., curvatureDriftWork_elc
 -Curvature drift component: curvatureDrifti_spec (F13 term 4 in Juno et al 2021)
 -GradB drift: gradBDrifti_spec (F13 term 3 in Juno et al 2021)

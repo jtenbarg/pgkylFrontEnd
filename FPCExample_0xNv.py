@@ -28,19 +28,19 @@ paramFile = '/Users/jtenbarg/Desktop/runs/gemEddyv43/DataMod/gem_params.txt'
 paramFile  = '/Users/jtenbarg/Desktop/runs/ECDIKap2D3s3/Data2/ECDI_params.txt'
 
 
-fileNumStart = 60
-fileNumEnd = 60
+fileNumStart = 10
+fileNumEnd = 30
 fileSkip = 1
 suffix = '.bp'
 varid = ''
 spec = 'elc'
-nTau = 0 #Frames over which to average. 0 or 1 does no averaging. Note centered ==> nTau must be odd and >= 3 
+nTau = 3 #Frames over which to average. 0 or 1 does no averaging. Note centered ==> nTau must be odd and >= 3 
 avgDir = 0 #Backwards (-1), forward (1), or centered (0). Endpoints treated with telescoping windows.
 
 plotAny = 1 #Must have plotAny = 1 to plot any of the following
-plotReducedFPCvsTime = 0 #Plot 1v reduced FPCs as function of time.
+plotReducedFPCvsTime = 1 #Plot 1v reduced FPCs as function of time.
 plotReducedFPCatTime1D = -1 #Plot 1v reduced FPCs at this t. Set to -1 to ignore
-plotReducedFPCatTime2D = 60 #Plot 2v reduced FPCs at this t. Set to -1 to ignore
+plotReducedFPCatTime2D = -1 #Plot 2v reduced FPCs at this t. Set to -1 to ignore
 saveFigs = 0
 showFigs = 1
 
@@ -197,6 +197,7 @@ if plotAny:
 				plt.ylabel('$t$' + params["timeLabel"])
 				plt.title(titles[i])
 				plt.colorbar(c1)
+				plt.grid(True)
 				if saveFigs:
 					saveFilename = figBase + '_Red1V_f' + str(i) + '_v' + str(d) + '_frame=' + str(ts[it]) + '.png'
 					plt.savefig(saveFilename, dpi=300)
@@ -229,6 +230,8 @@ if plotAny:
 			plt.ylabel('$C$')
 			plt.title(titles[i])
 			plt.autoscale(enable=True, axis='both', tight=True)
+			plt.grid(True)
+
 			if saveFigs:
 				saveFilename = figBase + '_Red1V_f' + str(i) + '_frame=' + str(ts[it]) + '.png'
 				plt.savefig(saveFilename, dpi=300)
@@ -263,6 +266,7 @@ if plotAny:
 					plt.colorbar(c1)
 					plt.title(title)
 					plt.axis('equal')
+					plt.grid(True)
 
 					if saveFigs:
 						saveFilename = figBase + '_Red2V_f' + CSub[i]  + '_v' + str(d) + '_frame=' + str(ts[it]) + '.png'
@@ -287,6 +291,7 @@ if plotAny:
 				plt.colorbar(c1)
 				plt.title(title)
 				plt.axis('equal')
+				plt.grid(True)
 
 				if saveFigs:
 					saveFilename = figBase + '_Red2V_f' + CSub[i] + '_v' + str(d) + '_frame=' + str(ts[it]) + '.png'

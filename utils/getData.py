@@ -197,8 +197,8 @@ def getData(self):
             stream = 0.
         else:
             spec = varid[varid.find('_')+1:]
-            coords, uy = getGenMom('uy' + '_' + spec)
-            coords, ux = getGenMom('ux' + '_' + spec)
+            coords, uy = getU('uy' + '_' + spec)
+            coords, ux = getU('ux' + '_' + spec)
             
             dx = np.zeros(len(coords))
             for d in range(len(coords)):
@@ -508,6 +508,50 @@ def getData(self):
             
         return coords, ExB
 
+    def getPoynting(varid):
+        coords, bx = getGenField('bx')
+        coords, by = getGenField('by')
+        coords, bz = getGenField('bz')
+        coords, ex = getGenField('ex')
+        coords, ey = getGenField('ey')
+        coords, ez = getGenField('ez')
+        
+        
+        if varid[-1] == 'x':
+            Poynting = (ey*bz - by*ez)
+        elif varid[-1] == 'y': 
+            Poynting = (ez*bx - bz*ex)
+        elif varid[-1] == 'z':
+            Poynting = (ex*by - bx*ey)
+        else:
+            Poynting = np.sqrt((ey*bz - by*ez)**2 + (ez*bx - bz*ex)**2 + (ex*by - bx*ey)**2)
+            
+        return coords, Poynting
+
+    def getCrossHelicity(varid):
+        coords, bx = getGenField('bx')
+        coords, by = getGenField('by')
+        coords, bz = getGenField('bz')
+        
+        spec = varid[varid.find('_')+1:]
+        specIndex = self.speciesFileIndex.index(spec)
+        mu = self.mu[specIndex]
+        mu0 = self.mu0
+        coords, n = getDens('n_' + spec)
+        coords, ux = getU('ux' + '_' + spec)
+        coords, uy = getU('uy' + '_' + spec)
+        coords, uz = getU('uz' + '_' + spec)
+
+        bx = bx / np.sqrt(n*mu0*mu)
+        by = by / np.sqrt(n*mu0*mu)
+        bz = bz / np.sqrt(n*mu0*mu)
+
+        E = 0.5*(ux**2 + uy**2 + uz**2 + bx**2 + by**2 + bz**2)
+
+        helicity = (ux*bx + uy*by + uz*bz) / E
+            
+        return coords, helicity
+
     def sortDrifts(varid, drift, qnE):
         suf = ['x', 'y', 'z']
         id = varid[varid.find('_')-1]
@@ -782,6 +826,8 @@ def getData(self):
             coords, data = getPressPar(varidGlobal)
         elif varidGlobal[1:5] == 'perp': #Perp Pressure
             coords, data = getPressPerp(varidGlobal)
+        elif varidGlobal[0:8] == 'poynting':#Poynting vector
+            coords, data = getPoynting(varidGlobal)
         else:# Pressure component
             coords, data = getPress(varidGlobal)
     elif varidGlobal[0:3] == 'trp': #Tr(P)
@@ -821,6 +867,8 @@ def getData(self):
         coords, data = getInertialLength(varidGlobal)
     elif varidGlobal[0:5] == 'debye':
         coords, data = getDebyeLength(varidGlobal)
+    elif varidGlobal[0:13] == 'crosshelicity':
+        coords, data = getCrossHelicity(varidGlobal)
     else:
         coords = [[0.]]
         data = [0.]

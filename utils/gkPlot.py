@@ -29,10 +29,11 @@ def gkPlot(self,show=1,save=0):
         plt.plot(self.coords[0]/axNorm[0], self.data, 'k', linewidth=2)
         plt.xlabel(self.params["axesLabels"][0])
         plt.autoscale(enable=True, axis='both', tight=True)
+        
                
     elif dims == 2:
         #plt.contourf(self.coords[0]/axNorm[0], self.coords[1]/axNorm[1], np.transpose(self.data),200)
-        plt.pcolormesh(self.coords[0]/axNorm[0], self.coords[1]/axNorm[1], np.transpose(self.data))
+        plt.pcolormesh(self.coords[0]/axNorm[0], self.coords[1]/axNorm[1], np.transpose(self.data), shading="gouraud")
         plt.xlabel(self.params["axesLabels"][0])
         plt.ylabel(self.params["axesLabels"][1])
         plt.colorbar()
@@ -67,3 +68,4 @@ def gkPlot(self,show=1,save=0):
         print('Figure written to ',saveFilename)
     if show:
         plt.show()
+    plt.close()
