@@ -67,7 +67,8 @@ def getData(self):
         else:
             self.time = data0.meta['time']
             if self.time is None:
-                self.time = 0.
+                print('Warning, data file does not contain time date. time set to fileNum')
+                self.time = self.fileNum
 
         return coords, data
 
@@ -552,6 +553,34 @@ def getData(self):
             
         return coords, helicity
 
+    def getFirehoseThreshold(varid):
+        spec = varid[varid.find('_')+1:]
+        tmp = self.params["restFrame"]
+        self.params["restFrame"] = 1 #Must be computed in the rest frame
+
+        coords, pxx = getPress('pxx_' + spec)
+        coords, pyy = getPress('pyy_' + spec)
+        coords, pzz = getPress('pzz_' + spec)
+        coords, pxy = getPress('pxy_' + spec)
+        coords, pxz = getPress('pxz_' + spec)
+        coords, pyz = getPress('pyz_' + spec)
+        coords, bx = getGenField('bx')
+        coords, by = getGenField('by')
+        coords, bz = getGenField('bz')
+        B = np.sqrt(bx**2 + by**2 + bz**2)
+        bx = bx / B
+        by = by / B
+        bz = bz / B
+
+        ppar = pxx*bx**2 + pyy*by**2 + pzz*bz**2 + 2.*(pxy*bx*by + pxz*bx*bz + pyz*by*bz)
+        pperp = (pxx+pyy+pzz - ppar) / 2.
+        betapar= 2*ppar*self.mu0 / B**2
+
+        firehose =  (pperp - ppar)/ppar + 2./(betapar)
+
+        self.params["restFrame"] = tmp
+        return coords, firehose
+
     def sortDrifts(varid, drift, qnE):
         suf = ['x', 'y', 'z']
         id = varid[varid.find('_')-1]
@@ -869,6 +898,8 @@ def getData(self):
         coords, data = getDebyeLength(varidGlobal)
     elif varidGlobal[0:13] == 'crosshelicity':
         coords, data = getCrossHelicity(varidGlobal)
+    elif varidGlobal[0:8] == 'firehose':
+        coords, data = getFirehoseThreshold(varidGlobal)
     else:
         coords = [[0.]]
         data = [0.]
