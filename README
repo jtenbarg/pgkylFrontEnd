@@ -40,6 +40,13 @@ Note that case is ignored
 -Firehose instability threshold (pperp_spec - ppar_spec)/ppar_spec + 2./(betapar_spec) < 0 unstable: firehose_spec
 -Mirror instability threshold (ppar_spec - pperp_spec)/ppar_spec + 1./(betaperp_spec) < 0 unstable: mirror_spec
 
+--PiD related quantities, see Cassak PoP 29, 122306 (2022) (https://doi.org/10.1063/5.0125248)
+-Pressure dilatation, pTheta (Tr(p_spec) / 3)*div u_spec: ptheta_spec
+-PiD, Pi_jk_spec*D_jk_spec: pid_spec
+-PiD normal component, equation 9a of Cassak: pidnormal_spec
+-PiD shear component, equation 9b of Cassak: pidshear_spec
+
+
 --Drifts: Add work to the name to calculate q n E dotted into work, e.g., curvatureDriftWork_elc
 -Curvature drift component: curvatureDrifti_spec (F13 term 4 in Juno et al 2021)
 -GradB drift: gradBDrifti_spec (F13 term 3 in Juno et al 2021)
@@ -48,3 +55,54 @@ Note that case is ignored
 -Diamagnetic drift: diamagDrifti_spec (F14 in Juno et al 2021)
 
 -Dispersion relation data from linear solver: dispersion
+
+
+###############################################
+General use instructions
+
+All scripts require a runname_params.txt file to exist in the data directory. This file contains all necessary information about the run to compute things correctly and produce normalized quantities. See example_params.txt for the expected structure.
+
+See plotExample.py for basic usage example. The possible varid choices are defined at the top of this readme. Several other example input files are also included to demonstrate other use cases.
+
+Once a gkData object has been read in (var in the plotExample.py script), you can access the following
+
+var.data = The data array corresponding to the varid choice
+var.coords = The coordinate array in code units, e.g., x, y, z
+var.dx = The axis spacing array in code units
+var.max = max(var.data)
+var.min = min(var.data)
+var.time = time in code units
+var.mu = Species mass array, order defined by params file
+var.q = Species charge array
+var.beta = species beta array
+var.vA = species Alfven speed array
+var.vt = species thermal speed array (vt = sqrt(2T_spec/m_spec))
+var.omegaC = species gyrofrequency array
+var.omegaP = species plasma frequency array
+var.d = species inertial length array
+var.rho = species gyroradius array (rho = vt / omegaC)
+var.debye = species debye array
+var.mu0 = mu0
+var.eps0 = eps0
+var.c = speed of light
+
+You can also access all of the params[*] variables, e.g.,
+var.params["axesNorm"] = Array of axis normilization optionally defined by user input.
+
+Plotting a gkData object directly can be done as plt.gkPlot(var) with 
+from utils import gkPlot as plt
+in premable. 
+See plotExample.py for the various plotting related params[*] that gkPlot will use.
+Note gkPlot takes optional arguments
+show = 0 or 1 to display the figure
+save = 0 or 1 to save the figure
+
+var.integrate() behaves like the python integrate function on a gkData object, e.g.,
+var.integrate() integrates over all axes, var.integrate(axis=0) integrates over the first axis, var.integrate((0,2)) integrates over axes 0 and 2. Note that axes integrated over are squeeze and the corresponding coords components are removed. 
+
+Simple operations can also be performed on gkData objects, e.g., for objects A, B, C
+D = 2*A*B + C**2 will return a new gkData object D. 
+
+
+
+

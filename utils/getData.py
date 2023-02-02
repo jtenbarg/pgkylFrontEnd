@@ -609,6 +609,152 @@ def getData(self):
         self.params["restFrame"] = tmp
         return coords, mirror
 
+    def getPTheta(varid):
+        spec = varid[varid.find('_')+1:]
+        tmp = self.params["restFrame"]
+        self.params["restFrame"] = 1 #Must be computed in the rest frame
+        coords, pxx = getPress('pxx_' + spec)
+        coords, pyy = getPress('pyy_' + spec)
+        coords, pzz = getPress('pzz_' + spec)
+        coords, ux = getU('ux_' + spec)
+        coords, uy = getU('uy_' + spec)
+        coords, uz = getU('uz_' + spec)
+
+        p = (pxx+pyy+pzz)/3. 
+
+        dims = len(np.shape(ux)) - 1
+
+        dx = np.zeros(dims)
+        for d in range(dims):
+            dx[d] = coords[d][1] - coords[d][0]
+        [duxdx,duxdy,duxdz] = genGradient.getGradient(ux,dx)
+        [duydx,duydy,duydz] = genGradient.getGradient(uy,dx)
+        [duzdx,duzdy,duzdz] = genGradient.getGradient(uz,dx)
+
+        pTheta = -p*(duxdx + duydy + duzdz)
+
+
+        self.params["restFrame"] = tmp
+        return coords, pTheta
+
+    def getPiD(varid):
+        spec = varid[varid.find('_')+1:]
+        tmp = self.params["restFrame"]
+        self.params["restFrame"] = 1 #Must be computed in the rest frame
+        coords, pxx = getPress('pxx_' + spec)
+        coords, pyy = getPress('pyy_' + spec)
+        coords, pzz = getPress('pzz_' + spec)
+        coords, pixy = getPress('pxy_' + spec)
+        coords, pixz = getPress('pxz_' + spec)
+        coords, piyz = getPress('pyz_' + spec)
+        coords, ux = getU('ux_' + spec)
+        coords, uy = getU('uy_' + spec)
+        coords, uz = getU('uz_' + spec)
+
+        p = (pxx+pyy+pzz)/3. 
+        pixx = pxx - p
+        piyy = pyy - p
+        pizz = pzz - p
+        
+        dims = len(np.shape(ux)) - 1
+
+        dx = np.zeros(dims)
+        for d in range(dims):
+            dx[d] = coords[d][1] - coords[d][0]
+        [duxdx,duxdy,duxdz] = genGradient.getGradient(ux,dx)
+        [duydx,duydy,duydz] = genGradient.getGradient(uy,dx)
+        [duzdx,duzdy,duzdz] = genGradient.getGradient(uz,dx)
+
+        divu = (duxdx + duydy + duzdz)
+
+        Dxx = (duxdx + duxdx)/2. - divu / 3.
+        Dyy = (duydy + duydy)/2. - divu / 3.
+        Dzz = (duzdz + duzdz)/2. - divu / 3.
+        Dxy = (duxdy + duydx)/2.
+        Dxz = (duxdz + duzdx)/2.
+        Dyz = (duydz + duzdy)/2.
+
+        piD = -(pixx*Dxx + piyy*Dyy + pizz*Dzz + 2.*(pixy*Dxy + pixz*Dxz + piyz*Dyz))
+
+        self.params["restFrame"] = tmp
+        return coords, piD
+
+    def getPiDNormal(varid):
+        spec = varid[varid.find('_')+1:]
+        tmp = self.params["restFrame"]
+        self.params["restFrame"] = 1 #Must be computed in the rest frame
+        coords, pxx = getPress('pxx_' + spec)
+        coords, pyy = getPress('pyy_' + spec)
+        coords, pzz = getPress('pzz_' + spec)
+        coords, ux = getU('ux_' + spec)
+        coords, uy = getU('uy_' + spec)
+        coords, uz = getU('uz_' + spec)
+
+        p = (pxx+pyy+pzz)/3. 
+        pixx = pxx - p
+        piyy = pyy - p
+        pizz = pzz - p
+        
+        dims = len(np.shape(ux)) - 1
+
+        dx = np.zeros(dims)
+        for d in range(dims):
+            dx[d] = coords[d][1] - coords[d][0]
+        [duxdx,duxdy,duxdz] = genGradient.getGradient(ux,dx)
+        [duydx,duydy,duydz] = genGradient.getGradient(uy,dx)
+        [duzdx,duzdy,duzdz] = genGradient.getGradient(uz,dx)
+
+        divu = (duxdx + duydy + duzdz)
+
+        Dxx = (duxdx + duxdx)/2. - divu / 3.
+        Dyy = (duydy + duydy)/2. - divu / 3.
+        Dzz = (duzdz + duzdz)/2. - divu / 3.
+
+        piDNormal = -(pixx*Dxx + piyy*Dyy + pizz*Dzz)
+
+        self.params["restFrame"] = tmp
+        return coords, piDNormal
+
+    def getPiDShear(varid):
+        spec = varid[varid.find('_')+1:]
+        tmp = self.params["restFrame"]
+        self.params["restFrame"] = 1 #Must be computed in the rest frame
+        coords, pxx = getPress('pxx_' + spec)
+        coords, pyy = getPress('pyy_' + spec)
+        coords, pzz = getPress('pzz_' + spec)
+        coords, pixy = getPress('pxy_' + spec)
+        coords, pixz = getPress('pxz_' + spec)
+        coords, piyz = getPress('pyz_' + spec)
+        coords, ux = getU('ux_' + spec)
+        coords, uy = getU('uy_' + spec)
+        coords, uz = getU('uz_' + spec)
+
+        p = (pxx+pyy+pzz)/3. 
+        pixx = pxx - p
+        piyy = pyy - p
+        pizz = pzz - p
+        
+        dims = len(np.shape(ux)) - 1
+
+        dx = np.zeros(dims)
+        for d in range(dims):
+            dx[d] = coords[d][1] - coords[d][0]
+        [duxdx,duxdy,duxdz] = genGradient.getGradient(ux,dx)
+        [duydx,duydy,duydz] = genGradient.getGradient(uy,dx)
+        [duzdx,duzdy,duzdz] = genGradient.getGradient(uz,dx)
+
+        divu = (duxdx + duydy + duzdz)
+
+        Dxy = (duxdy + duydx)/2.
+        Dxz = (duxdz + duzdx)/2.
+        Dyz = (duydz + duzdy)/2.
+
+        piDShear = -2.*(pixy*Dxy + pixz*Dxz + piyz*Dyz)
+
+        self.params["restFrame"] = tmp
+        return coords, piDShear
+
+
     def sortDrifts(varid, drift, qnE):
         suf = ['x', 'y', 'z']
         id = varid[varid.find('_')-1]
@@ -885,6 +1031,15 @@ def getData(self):
             coords, data = getPressPerp(varidGlobal)
         elif varidGlobal[0:8] == 'poynting':#Poynting vector
             coords, data = getPoynting(varidGlobal)
+        elif varidGlobal[0:6] == 'ptheta':#p div u
+            coords, data = getPTheta(varidGlobal)
+        elif varidGlobal[0:3] == 'pid':#piD
+            if varidGlobal[0:9] == 'pidnormal':#piDNormal, Cassak PoP 29, 122306 (2022)
+                coords, data = getPiDNormal(varidGlobal)
+            elif varidGlobal[0:8] == 'pidshear':#piDShear, Cassak PoP 29, 122306 (2022)
+                coords, data = getPiDShear(varidGlobal)
+            else:
+                coords, data = getPiD(varidGlobal)
         else:# Pressure component
             coords, data = getPress(varidGlobal)
     elif varidGlobal[0:3] == 'trp': #Tr(P)
