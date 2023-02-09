@@ -19,9 +19,7 @@ params = {} #Initialize dictionary to store plotting and other parameters
 
 #Tested to handle g0 and g2: VM, 5M, 10M
 #Requires a _params.txt file in your data directory of the form gkeyllOutputBasename_params.txt! See example_params.txt for formatting
-
 paramsFile = '/Users/jtenbarg/Desktop/runs/gemG0M224x112Noise/Data/gem_params.txt';
-
 
 fileNumStart = 0
 fileNumEnd = 30
@@ -91,10 +89,11 @@ for it in range(nt):
 	psiO[it] = var.max
 
 psiDiff = np.abs(psiO - psiX)
-dpsidt = np.diff(psiDiff) / np.diff(t)
+#dpsidt = np.diff(psiDiff) / np.diff(t)
+dpsidt = np.gradient(psiDiff,t)
 
 plt.figure(figsize=(12,8))
-plt.plot(t[1:]*params["timeNorm"],dpsidt*rateFac,'k',linewidth=2)
+plt.plot(t*params["timeNorm"],dpsidt*rateFac,'k',linewidth=2)
 plt.xlabel('$t$' + params["timeLabel"])
 plt.ylabel('$E / v_{A} B_0$')
 plt.autoscale(enable=True, axis='both', tight=True)
