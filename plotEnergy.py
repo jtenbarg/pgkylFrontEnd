@@ -139,7 +139,6 @@ for i in range(nt):
         JE = n*(ux*ex+uy*ey+uz*ez)
         Work[s+1, i] =  n.q[s]*getattr(JE.integrate(), 'data')
 
-print(t)
 T = P - u
 Etot = np.sum(P,axis=0) + E + B
 
