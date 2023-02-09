@@ -1,7 +1,6 @@
 import numpy as np
 from utils import gkData
 from utils import gkPlot as plt
-params = {} #Initialize dictionary to store plotting and other parameters
 #End preamble###################################
 
 #Tested to handle g0 and g2: VM, 5M, 10M
@@ -11,6 +10,7 @@ paramFile = '/Users/jtenbarg/Desktop/runs/gemEddyv43/Data/gem_params.txt'
 fileNum = 15
 suffix = '.bp'
 varid = 'ux_elc' #See table of choices in README
+params = {} #Initialize dictionary to store plotting and other parameters
 tmp = gkData.gkData(paramFile,fileNum,suffix,varid,params) #Initialize constants for normalization
 
 params["lowerLimits"] = [-1.e6, -1.e6, -1.e6, -1.e6, -1.e6]

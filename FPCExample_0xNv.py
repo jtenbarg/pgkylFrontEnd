@@ -1,34 +1,19 @@
 import numpy as np
 from utils import gkData
-from utils import gkPlot as plt
 from utils import FPC as FPC
 import itertools
 import matplotlib.pyplot as plt
-
-params = {} #Initialize dictionary to store plotting and other parameters
-SMALL_SIZE = 14
-MEDIUM_SIZE = 16
-BIGGER_SIZE = 20
-plt.rc('font', size=MEDIUM_SIZE)          # controls default text sizes
-plt.rc('axes', titlesize=MEDIUM_SIZE)     # fontsize of the axes title
-plt.rc('axes', labelsize=BIGGER_SIZE)    # fontsize of the x and y labels
-plt.rc('xtick', labelsize=MEDIUM_SIZE)    # fontsize of the tick labels
-plt.rc('ytick', labelsize=MEDIUM_SIZE)    # fontsize of the tick labels
-plt.rc('legend', fontsize=MEDIUM_SIZE)    # legend fontsize
-plt.rc('figure', titlesize=MEDIUM_SIZE)  # fontsize of the figure title
-plt.rcParams["font.weight"] = "bold"
-plt.rcParams["axes.labelweight"] = "bold"
-#plt.rcParams["text.usetex"] = True
+from utils import plotParams
 #End preamble########################
 
 
 #Tested to handle g0 and g2: VM, 5M, 10M
 #Requires a _params.txt file in your data directory of the form gkeyllOutputBasename_params.txt! See example_params.txt for formatting
-paramFile = '/Users/jtenbarg/Desktop/runs/gemEddyv43/DataMod/gem_params.txt' 
+#paramFile = '/Users/jtenbarg/Desktop/runs/gemEddyv43/DataMod/gem_params.txt' 
 paramFile  = '/Users/jtenbarg/Desktop/runs/ECDIKap2D3s3/Data2/ECDI_params.txt'
 
 
-fileNumStart = 10
+fileNumStart = 0
 fileNumEnd = 30
 fileSkip = 1
 suffix = '.bp'
@@ -44,12 +29,13 @@ plotReducedFPCatTime2D = -1 #Plot 2v reduced FPCs at this t. Set to -1 to ignore
 saveFigs = 0
 showFigs = 1
 
+params = {} #Initialize dictionary to store plotting and other parameters
 tmp = gkData.gkData(paramFile,fileNumStart,suffix,varid,params) #Initialize constants for normalization
 
 #below limits [z0, z1, z2,...] normalized to params["axesNorm"]
 params["lowerLimits"] = [0e0,  -1.e6, -1.e6, -1.e6, -1.e6, -1e6] 
 params["upperLimits"] = [0e0,  1.e6,  1.e6,  1.e6,  1.e6,  1.e6]
-params["fieldAlign"] = 0 #Align FPC to the local magnetic field. Only use for 3V data.
+params["fieldAlign"] = 1 #Align FPC to the local magnetic field. Only use for 3V data.
 #params["driftAlign"] = 'curvatureDrift' #Rotate FPC with B and drift. Only use for 3V data.
 #params["frameXform"] = [1,1,1] #Transform frames, including electric field. This must be moved to the timeloop for time dependent xforms
 

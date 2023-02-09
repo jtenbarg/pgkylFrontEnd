@@ -1,21 +1,8 @@
 import numpy as np
 from utils import gkData
-from utils import gkPlot as plt
 import matplotlib.pyplot as plt
-params = {} #Initialize dictionary to store plotting and other parameters
-SMALL_SIZE = 14
-MEDIUM_SIZE = 16
-BIGGER_SIZE = 20
-plt.rc('font', size=MEDIUM_SIZE)          # controls default text sizes
-plt.rc('axes', titlesize=MEDIUM_SIZE)     # fontsize of the axes title
-plt.rc('axes', labelsize=BIGGER_SIZE)    # fontsize of the x and y labels
-plt.rc('xtick', labelsize=MEDIUM_SIZE)    # fontsize of the tick labels
-plt.rc('ytick', labelsize=MEDIUM_SIZE)    # fontsize of the tick labels
-plt.rc('legend', fontsize=MEDIUM_SIZE)    # legend fontsize
-plt.rc('figure', titlesize=MEDIUM_SIZE)  # fontsize of the figure title
-plt.rcParams["font.weight"] = "bold"
-plt.rcParams["axes.labelweight"] = "bold"
-#plt.rcParams["text.usetex"] = True
+from utils import plotParams
+
 #End preamble########################
 
 #This file computes the change in energies from the moment and fields files.
@@ -29,8 +16,9 @@ fileSkip = 1
 suffix = '.bp'
 sub0 = 1
 saveFigs = 0
-varid = ''
 
+varid = ''
+params = {} #Initialize dictionary to store plotting and other parameters
 tmp = gkData.gkData(paramFile,fileNumStart,suffix,varid,params) #Initialize constants for normalization
 
 #below limits [z0, z1, z2,...] normalized to params["axesNorm"]

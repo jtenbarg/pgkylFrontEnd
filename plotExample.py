@@ -1,7 +1,6 @@
 import numpy as np
 from utils import gkData
 from utils import gkPlot as plt
-params = {} #Initialize dictionary to store plotting and other parameters
 #End Preamble######################
 
 #Tested to handle g0 and g2: VM, 5M, 10M
@@ -11,6 +10,8 @@ fileNum = 18
 
 suffix = '.bp'
 varid = 'jz' #See table of choices in README
+
+params = {} #Initialize dictionary to store plotting and other parameters
 tmp = gkData.gkData(paramFile,fileNum,suffix,varid,params) #Initialize constants for normalization
 
 #below limits [z0, z1, z2,...] normalized to params["axesNorm"]

@@ -4,23 +4,9 @@ from utils import gkData
 from utils import gkPlot
 from utils import polarFFT
 import matplotlib.pyplot as plt
+from utils import plotParams
 import postgkyl as pg
 from utils import gkPlot
-
-params = {} #Initialize dictionary to store plotting and other parameters
-SMALL_SIZE = 14
-MEDIUM_SIZE = 16
-BIGGER_SIZE = 20
-plt.rc('font', size=MEDIUM_SIZE)          # controls default text sizes
-plt.rc('axes', titlesize=MEDIUM_SIZE)     # fontsize of the axes title
-plt.rc('axes', labelsize=BIGGER_SIZE)    # fontsize of the x and y labels
-plt.rc('xtick', labelsize=MEDIUM_SIZE)    # fontsize of the tick labels
-plt.rc('ytick', labelsize=MEDIUM_SIZE)    # fontsize of the tick labels
-plt.rc('legend', fontsize=MEDIUM_SIZE)    # legend fontsize
-plt.rc('figure', titlesize=MEDIUM_SIZE)  # fontsize of the figure title
-plt.rcParams["font.weight"] = "bold"
-plt.rcParams["axes.labelweight"] = "bold"
-#plt.rcParams["text.usetex"] = True
 #End Preamble##################################
 
 
@@ -36,6 +22,8 @@ paramFile = '/Users/jtenbarg/Downloads/field-data/pkpm_ot_p1-params.txt'
 fileNum = 100
 suffix = '.gkyl'
 bgDir = 2 #Guide field direction: 0, 1, or 2 = x, y, or z. If 2D data, this direciton must not be in the 2D plane.
+
+params = {} #Initialize dictionary to store plotting and other parameters
 tmp = gkData.gkData(paramFile,fileNum,suffix,'bx',params) #Initialize constants for normalization
 
 #below limits [z0, z1, z2,...] normalized to params["axesNorm"]

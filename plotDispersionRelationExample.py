@@ -1,20 +1,8 @@
 import numpy as np
 from utils import gkData
 import matplotlib.pyplot as plt
-params = {} #Initialize dictionary to store plotting and other parameters
-SMALL_SIZE = 14
-MEDIUM_SIZE = 16
-BIGGER_SIZE = 20
-plt.rc('font', size=MEDIUM_SIZE)          # controls default text sizes
-plt.rc('axes', titlesize=MEDIUM_SIZE)     # fontsize of the axes title
-plt.rc('axes', labelsize=BIGGER_SIZE)    # fontsize of the x and y labels
-plt.rc('xtick', labelsize=MEDIUM_SIZE)    # fontsize of the tick labels
-plt.rc('ytick', labelsize=MEDIUM_SIZE)    # fontsize of the tick labels
-plt.rc('legend', fontsize=MEDIUM_SIZE)    # legend fontsize
-plt.rc('figure', titlesize=MEDIUM_SIZE)  # fontsize of the figure title
-plt.rcParams["font.weight"] = "bold"
-plt.rcParams["axes.labelweight"] = "bold"
-plt.rcParams["text.usetex"] = True
+from utils import plotParams
+
 #End Preamble############################################
 
 #Requires a _params.txt file in your data directory of the form gkeyllOutputBasename_params.txt! See example_params.txt for formatting
@@ -24,6 +12,7 @@ fileNum = 0
 suffix = ''
 varid = 'dispersion'
 
+params = {} #Initialize dictionary to store plotting and other parameters
 tmp = gkData.gkData(paramsFile,fileNum,suffix,varid,params) #Initialize constants for normalization
 
 #Define species to normalize and lengths/times 

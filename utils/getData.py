@@ -2,7 +2,7 @@ import numpy as np
 import scipy as sp
 import postgkyl as pg
 from utils import getSlice
-from utils import genGradient
+from utils import auxFuncs
 
 from pathlib import Path
 
@@ -627,9 +627,9 @@ def getData(self):
         dx = np.zeros(dims)
         for d in range(dims):
             dx[d] = coords[d][1] - coords[d][0]
-        [duxdx,duxdy,duxdz] = genGradient.getGradient(ux,dx)
-        [duydx,duydy,duydz] = genGradient.getGradient(uy,dx)
-        [duzdx,duzdy,duzdz] = genGradient.getGradient(uz,dx)
+        [duxdx,duxdy,duxdz] = auxFuncs.genGradient(ux,dx)
+        [duydx,duydy,duydz] = auxFuncs.genGradient(uy,dx)
+        [duzdx,duzdy,duzdz] = auxFuncs.genGradient(uz,dx)
 
         pTheta = -p*(duxdx + duydy + duzdz)
 
@@ -661,9 +661,9 @@ def getData(self):
         dx = np.zeros(dims)
         for d in range(dims):
             dx[d] = coords[d][1] - coords[d][0]
-        [duxdx,duxdy,duxdz] = genGradient.getGradient(ux,dx)
-        [duydx,duydy,duydz] = genGradient.getGradient(uy,dx)
-        [duzdx,duzdy,duzdz] = genGradient.getGradient(uz,dx)
+        [duxdx,duxdy,duxdz] = auxFuncs.genGradient(ux,dx)
+        [duydx,duydy,duydz] = auxFuncs.genGradient(uy,dx)
+        [duzdx,duzdy,duzdz] = auxFuncs.genGradient(uz,dx)
 
         divu = (duxdx + duydy + duzdz)
 
@@ -700,9 +700,9 @@ def getData(self):
         dx = np.zeros(dims)
         for d in range(dims):
             dx[d] = coords[d][1] - coords[d][0]
-        [duxdx,duxdy,duxdz] = genGradient.getGradient(ux,dx)
-        [duydx,duydy,duydz] = genGradient.getGradient(uy,dx)
-        [duzdx,duzdy,duzdz] = genGradient.getGradient(uz,dx)
+        [duxdx,duxdy,duxdz] = auxFuncs.genGradient(ux,dx)
+        [duydx,duydy,duydz] = auxFuncs.genGradient(uy,dx)
+        [duzdx,duzdy,duzdz] = auxFuncs.genGradient(uz,dx)
 
         divu = (duxdx + duydy + duzdz)
 
@@ -739,9 +739,9 @@ def getData(self):
         dx = np.zeros(dims)
         for d in range(dims):
             dx[d] = coords[d][1] - coords[d][0]
-        [duxdx,duxdy,duxdz] = genGradient.getGradient(ux,dx)
-        [duydx,duydy,duydz] = genGradient.getGradient(uy,dx)
-        [duzdx,duzdy,duzdz] = genGradient.getGradient(uz,dx)
+        [duxdx,duxdy,duxdz] = auxFuncs.genGradient(ux,dx)
+        [duydx,duydy,duydz] = auxFuncs.genGradient(uy,dx)
+        [duzdx,duzdy,duzdz] = auxFuncs.genGradient(uz,dx)
 
         divu = (duxdx + duydy + duzdz)
 
@@ -791,9 +791,9 @@ def getData(self):
         for d in range(dims):
             dx[d] = coords[d][1] - coords[d][0]
 
-        [dbxdx,dbxdy,dbxdz] = genGradient.getGradient(bx,dx)
-        [dbydx,dbydy,dbydz] = genGradient.getGradient(by,dx)
-        [dbzdx,dbzdy,dbzdz] = genGradient.getGradient(bz,dx)
+        [dbxdx,dbxdy,dbxdz] = auxFuncs.genGradient(bx,dx)
+        [dbydx,dbydy,dbydz] = auxFuncs.genGradient(by,dx)
+        [dbzdx,dbzdy,dbzdz] = auxFuncs.genGradient(bz,dx)
 
         #kappa = b . (grad b) 
         kappax = bx*dbxdx + by*dbxdy + bz*dbxdz 
@@ -833,9 +833,9 @@ def getData(self):
         dx = np.zeros(dims)
         for d in range(dims):
             dx[d] = coords[d][1] - coords[d][0]
-        [dbxdx,dbxdy,dbxdz] = genGradient.getGradient(bx/B,dx)
-        [dbydx,dbydy,dbydz] = genGradient.getGradient(by/B,dx)
-        [dbzdx,dbzdy,dbzdz] = genGradient.getGradient(bz/B,dx)
+        [dbxdx,dbxdy,dbxdz] = auxFuncs.genGradient(bx/B,dx)
+        [dbydx,dbydy,dbydz] = auxFuncs.genGradient(by/B,dx)
+        [dbzdx,dbzdy,dbzdz] = auxFuncs.genGradient(bz/B,dx)
 
         cBx = dbzdy - dbydz; cBy = dbxdz - dbzdx; cBz = dbydx - dbxdy; #curl (B / B^2)
         bdotcB = bx*cBx + by*cBy + bz*cBz #b . curl (B / B^2), parallel component
@@ -878,9 +878,9 @@ def getData(self):
         spec = varid[varid.find('_')+1:]
         coords, Pperp = getPressPerp(varid)
         self.params["restFrame"] = tmp
-        [dMxdx,dMxdy,dMxdz] = genGradient.getGradient(-Pperp*bx/B,dx)
-        [dMydx,dMydy,dMydz] = genGradient.getGradient(-Pperp*by/B,dx)
-        [dMzdx,dMzdy,dMzdz] = genGradient.getGradient(-Pperp*bz/B,dx)
+        [dMxdx,dMxdy,dMxdz] = auxFuncs.genGradient(-Pperp*bx/B,dx)
+        [dMydx,dMydy,dMydz] = auxFuncs.genGradient(-Pperp*by/B,dx)
+        [dMzdx,dMzdy,dMzdz] = auxFuncs.genGradient(-Pperp*bz/B,dx)
     
         cMx = dMzdy - dMydz; cMy = dMxdz - dMzdx; cMz = dMydx - dMxdy; #curl (M)
         bdotcM = bx*cMx + by*cMy + bz*cMz #b . curl (M), parallel component
@@ -917,7 +917,7 @@ def getData(self):
         spec = varid[varid.find('_')+1:]
         coords, Pperp = getPressPerp(varid)
         self.params["restFrame"] = tmp
-        [dpdx,dpdy,dpdz] = genGradient.getGradient(Pperp,dx)
+        [dpdx,dpdy,dpdz] = auxFuncs.genGradient(Pperp,dx)
         
         specIndex = self.speciesFileIndex.index(spec)
         q = self.q[specIndex]
@@ -966,12 +966,12 @@ def getData(self):
         dx = np.zeros(dims)
         for d in range(dims):
             dx[d] = coords[d][1] - coords[d][0]
-        [dpixxdx,dpixxdy,dpixxdz] = genGradient.getGradient(pixx,dx)
-        [dpiyydx,dpiyydy,dpiyydz] = genGradient.getGradient(piyy,dx)
-        [dpizzdx,dpizzdy,dpizzdz] = genGradient.getGradient(pizz,dx)
-        [dpixydx,dpixydy,dpixydz] = genGradient.getGradient(pixy,dx)
-        [dpixzdx,dpixzdy,dpixzdz] = genGradient.getGradient(pixz,dx)
-        [dpiyzdx,dpiyzdy,dpiyzdz] = genGradient.getGradient(piyz,dx)
+        [dpixxdx,dpixxdy,dpixxdz] = auxFuncs.genGradient(pixx,dx)
+        [dpiyydx,dpiyydy,dpiyydz] = auxFuncs.genGradient(piyy,dx)
+        [dpizzdx,dpizzdy,dpizzdz] = auxFuncs.genGradient(pizz,dx)
+        [dpixydx,dpixydy,dpixydz] = auxFuncs.genGradient(pixy,dx)
+        [dpixzdx,dpixzdy,dpixzdz] = auxFuncs.genGradient(pixz,dx)
+        [dpiyzdx,dpiyzdy,dpiyzdz] = auxFuncs.genGradient(piyz,dx)
 
 
         specIndex = self.speciesFileIndex.index(spec)

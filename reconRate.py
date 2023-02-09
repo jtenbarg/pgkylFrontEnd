@@ -1,20 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from utils import plotParams
 from utils import gkData
-from utils import findSaddles
-SMALL_SIZE = 14
-MEDIUM_SIZE = 16
-BIGGER_SIZE = 20
-plt.rc('font', size=MEDIUM_SIZE)          # controls default text sizes
-plt.rc('axes', titlesize=MEDIUM_SIZE)     # fontsize of the axes title
-plt.rc('axes', labelsize=BIGGER_SIZE)    # fontsize of the x and y labels
-plt.rc('xtick', labelsize=MEDIUM_SIZE)    # fontsize of the tick labels
-plt.rc('ytick', labelsize=MEDIUM_SIZE)    # fontsize of the tick labels
-plt.rc('legend', fontsize=MEDIUM_SIZE)    # legend fontsize
-plt.rc('figure', titlesize=MEDIUM_SIZE)  # fontsize of the figure title
-plt.rcParams["font.weight"] = "bold"
-plt.rcParams["axes.labelweight"] = "bold"
-params = {} #Initialize dictionary to store plotting and other parameters
+from utils import auxFuncs
 #End preamble####################################
 
 #Tested to handle g0 and g2: VM, 5M, 10M
@@ -26,6 +14,8 @@ fileNumEnd = 30
 fileSkip = 1
 suffix = '.bp'
 varid = 'psi' #See table of choices in README
+
+params = {} #Initialize dictionary to store plotting and other parameters
 tmp = gkData.gkData(paramsFile,fileNumStart,suffix,varid,params) #Initialize constants for normalization
 
 #below limits [z0, z1, z2,...] normalized to params["axesNorm"]
@@ -73,7 +63,7 @@ psiX = np.zeros(nt); psiO = np.zeros(nt); t = np.zeros(nt)
 for it in range(nt):
 	var = gkData.gkData(paramsFile,ts[it],suffix,varid,params).compactRead()
 	t[it] = var.time
-	saddles = findSaddles.saddles(var.data); nSaddles = len(saddles)
+	saddles = auxFuncs.findSaddles(var.data); nSaddles = len(saddles)
 	if nSaddles == 0:
 		print('Found no saddle points in frame ' + str(it))
 	elif nSaddles == 1:
@@ -89,7 +79,6 @@ for it in range(nt):
 	psiO[it] = var.max
 
 psiDiff = np.abs(psiO - psiX)
-#dpsidt = np.diff(psiDiff) / np.diff(t)
 dpsidt = np.gradient(psiDiff,t)
 
 plt.figure(figsize=(12,8))

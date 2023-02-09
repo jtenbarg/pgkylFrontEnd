@@ -1,6 +1,6 @@
 import numpy as np
 from utils import gkData
-from utils import rotMatrix 
+from utils import auxFuncs 
 
 def between(val, x):
 	for i in range(len(x)):
@@ -73,7 +73,7 @@ def computeFPC(paramFile,fileNum,suffix,spec,params):
 			ind = np.unravel_index(i, NX)
 			Bl = []; [Bl.append(B[ix][ind]) for ix in range(3)]
 			driftl = []; [driftl.append(drift[ix][ind]) for ix in range(3)]
-			rot[ind] = rotMatrix.arbitrary(np.squeeze(Bl),driftl)
+			rot[ind] = auxFuncs.rotMatrixArbitrary(np.squeeze(Bl),driftl)
 		rotate = 1
 
 	#Compute rotation matrix for field aligned coords. Overrides drift alignment
@@ -82,7 +82,7 @@ def computeFPC(paramFile,fileNum,suffix,spec,params):
 		for i in range(np.prod(NX)):
 			ind = np.unravel_index(i, NX)
 			Bl = []; [Bl.append(B[ix][ind]) for ix in range(3)]
-			rot[ind] = rotMatrix.fieldAligned(np.squeeze(Bl))
+			rot[ind] = auxFuncs.rotMatrixFieldAligned(np.squeeze(Bl))
 		rotate = 1
 
 	#Rotate electric field

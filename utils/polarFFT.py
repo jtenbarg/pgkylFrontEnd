@@ -1,6 +1,6 @@
 import numpy as np
 
-
+#Initialize polar, (kperp, kguide), grid and bins for polar FFTs
 def initPolar(k, bgDir):
 
     dims = np.shape(k)[0]
@@ -49,6 +49,7 @@ def initPolar(k, bgDir):
     return akp, nbin, polar_index, akplim, ebinCorr
 
 
+#Convert cartesian FFT to polar FFT and bin.
 def polarFFTBin(k, bgDir, polar_index, fft_matrix):
     
     dims = np.shape(k)[0]
