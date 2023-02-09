@@ -53,7 +53,8 @@ params["div0"] = 0 #Divide data by data(t=0)
 
 #Converts rate to E/vA_perp delta B = E / (vA/c)^2 * (B0/delta B)^2
 specIndex = tmp.speciesFileIndex.index('ion');
-n0_ninf = 5; B0_dB = 1; va_c = tmp.vA[specIndex] * np.sqrt(n0_ninf)/ tmp.c
+n0_ninf = 5; B0_dB = 1; 
+va_c = tmp.vA[specIndex] * np.sqrt(n0_ninf)/ tmp.c
 rateFac = B0_dB**2 / va_c**2
 
 ts = np.arange(fileNumStart, fileNumEnd+1, fileSkip)
