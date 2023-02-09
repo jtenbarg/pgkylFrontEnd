@@ -22,17 +22,9 @@ plt.rcParams["axes.labelweight"] = "bold"
 #Tested to handle g0 and g2: VM, 5M, 10M
 #Requires a _params.txt file in your data directory of the form gkeyllOutputBasename_params.txt! See example_params.txt for formatting
 paramFile = '/Users/jtenbarg/Desktop/runs/gemEddyv43/Data/gem_params.txt' 
-#paramFile  = '/Users/jtenbarg/Desktop/runs/ECDIKap2D3s3/Data/ECDI_params.txt'
-#paramFile  = '/Users/jtenbarg/Desktop/runs/ECDIv2/Data/ECDI_params.txt'
-paramFile = '/Users/jtenbarg/Desktop/Runs/SULI2022/ot5M_256pi/ot_g0_5M-params.txt'
-#paramFile = '/Users/jtenbarg/Desktop/Runs/SULI2022/ot5M_KEP_v1/5m_kep_ot-params.txt'
-paramFile = '/Users/jtenbarg/Desktop/Runs/SULI2022/ot_Brag_KEP_Coll0.1_256pi/5m_kep_ot-params.txt'
-#paramFile = '/Users/jtenbarg/Desktop/Runs/ot3D_2D/ot3D_params.txt'
-paramFile = '/Users/jtenbarg/Desktop/Runs/SULI2022/ot_g0_5M_256pi_cfl1/ot_g0_5M-params.txt'
-paramFile = '/Users/jtenbarg/Desktop/Runs/LAPDGrad/Case1/3D5Mv0/LAPD3D5Mg2_params.txt'
 
 fileNumStart = 0
-fileNumEnd = 36
+fileNumEnd = 20
 fileSkip = 1
 suffix = '.bp'
 sub0 = 1
@@ -194,8 +186,11 @@ plt.show()
 
 plt.figure(figsize=(12,8))
 plt.plot(t,Work[0,:],'k', linewidth=2)
+leg = ['$J \cdot E$']
 for s in range(nspec):
     plt.plot(t,Work[s+1,:],'--'+cl[s],linewidth=2)
+    leg.append('$J_{' + tmp.speciesFileIndex[s][0] + '} \cdot E$')
+plt.legend(leg, frameon=False)
 plt.plot(t,np.zeros(nt),'k')
 plt.xlabel('t' + tmp.params["timeLabel"])
 plt.ylabel('$J\cdot E$')
