@@ -1,3 +1,9 @@
+########################################
+Params file information
+
+All scripts require a runname_params.txt file to exist in the data directory. This file contains all necessary information about the run to compute things correctly and produce normalized quantities. See example_params.txt for the expected structure. IMPORTANT NOTE the formatting of the name of the params file is important and must follow the naming format of your data files. For instance, g0 data use a - rather than _ between the base filename and elc/ion/field/etc. So, for these cases, the params file must be named runname-params.txt
+
+
 ##########################################
 Table of choices for varid. i,j, k = x,y,z. spec = species as in filename
 Note that case is ignored
@@ -61,8 +67,6 @@ Note that case is ignored
 General use instructions
 First, one must import gkData
 from utils import gkData
-
-All scripts require a runname_params.txt file to exist in the data directory. This file contains all necessary information about the run to compute things correctly and produce normalized quantities. See example_params.txt for the expected structure.
 
 See plotExample.py for basic usage example. The possible varid choices are defined at the top of this readme. Several other example input files are also included to demonstrate other use cases.
 
@@ -141,11 +145,6 @@ nTau = 3 #Frames over which to average. 0 or 1 does no averaging. Note centered 
 avgDir = 0 #Backwards (-1), forward (1), or centered (0). Endpoints treated with telescoping windows.
 
 For a complete example, see the included FPCExample_0xNv.py.
-
-
-
-
-Add notes about FFT
 
 
 
