@@ -7,13 +7,15 @@ from utils import auxFuncs
 
 #Tested to handle g0 and g2: VM, 5M, 10M
 #Requires a _params.txt file in your data directory of the form gkeyllOutputBasename_params.txt! See example_params.txt for formatting
-paramsFile = '/Users/jtenbarg/Desktop/runs/gemG0M224x112Noise/Data/gem_params.txt';
+paramsFile = '/Users/jtenbarg/Desktop/runs/gemG0M112x56HiVNoisev2/Data/gem_params.txt';
+#paramsFile = '/Users/jtenbarg/Desktop/runs/HarrisG0Bg0.1/Data/HarrisBg1_params.txt';
 
 fileNumStart = 0
-fileNumEnd = 30
+fileNumEnd = 16
 fileSkip = 1
 suffix = '.bp'
 varid = 'psi' #See table of choices in README
+saveFigs = 1
 
 params = {} #Initialize dictionary to store plotting and other parameters
 tmp = gkData.gkData(paramsFile,fileNumStart,suffix,varid,params) #Initialize constants for normalization
@@ -53,7 +55,7 @@ params["div0"] = 0 #Divide data by data(t=0)
 
 #Converts rate to E/vA_perp delta B = E / (vA/c)^2 * (B0/delta B)^2
 specIndex = tmp.speciesFileIndex.index('ion');
-n0_ninf = 5; B0_dB = 1; 
+n0_ninf = 5; B0_dB = 1; #Used to convert to upstream vA 
 va_c = tmp.vA[specIndex] * np.sqrt(n0_ninf)/ tmp.c
 rateFac = B0_dB**2 / va_c**2
 
@@ -78,6 +80,7 @@ for it in range(nt):
 				break
 	
 	psiO[it] = var.max
+	#print(saddles)
 
 psiDiff = np.abs(psiO - psiX)
 dpsidt = np.gradient(psiDiff,t)
@@ -87,6 +90,10 @@ plt.plot(t*params["timeNorm"],dpsidt*rateFac,'k',linewidth=2)
 plt.xlabel('$t$' + params["timeLabel"])
 plt.ylabel('$E / v_{A} B_0$')
 plt.autoscale(enable=True, axis='both', tight=True)
+if saveFigs:
+    saveFilename = tmp.filenameBase + 'reconRate.png'
+    plt.savefig(saveFilename, dpi=300)
+    print('Figure written to ',saveFilename)
 plt.show()
 
 

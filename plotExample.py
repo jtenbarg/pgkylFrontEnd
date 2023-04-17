@@ -18,6 +18,7 @@ tmp = gkData.gkData(paramFile,fileNum,suffix,varid,params) #Initialize constants
 params["lowerLimits"] = [-1.e6, -1.e6, -1.e6, -1.e6, -1.e6, -1e6] 
 params["upperLimits"] = [ 1.e6,  1.e6,  1.e6,  1.e6,  1.e6,  1.e6]
 params["restFrame"] = 1 #Convert pressures to fluid restframe, Pij - n ui uj 
+#params["polyOrderOverride"] = 8 #Override default dg interpolation and interpolate to given number of points
 
 
 #Define species to normalize and lengths/times 

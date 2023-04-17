@@ -17,6 +17,52 @@ def genGradient(var, dx):
 
     return dvardx, dvardy, dvardz
 
+#Handle arbitrary dimensionality for numpy gradient method
+def eigthOrderGrad2D(f, dx):
+    shapeF = np.shape(f); dims = len(shapeF)
+    if dims > 2 and shapeF[2] == 1:
+        f = np.squeeze(f); shapeF = np.shape(f)
+    nrows, ncols = shapeF
+    dfdx = np.zeros((nrows, ncols))
+    dfdy = np.zeros((nrows, ncols))
+    dfdz = np.zeros((nrows, ncols))
+    [dfdx, dfdy] = np.gradient(f,dx[0],dx[1],edge_order=2)
+    for i in range(4, nrows-4):
+        for j in range(4, ncols-4):
+            dfdy[i,j] = (-f[i, j+4]/280.0 + f[i, j+3]*4.0/105.0 - f[i, j+2]/5.0 + f[i, j+1]*4.0/5.0 \
+                - f[i, j-1]*4.0/5.0 + f[i, j-2]/5.0 - f[i, j-3]*4.0/105.0 + f[i, j-4]/280.0) / (dx[1])
+            dfdx[i,j] = (-f[i+4, j]/280.0 + f[i+3, j]*4.0/105.0 - f[i+2, j]/5.0 + f[i+1, j]*4.0/5.0 \
+                - f[i-1, j]*4.0/5.0 + f[i-2, j]/5.0 - f[i-3, j]*4.0/105.0 + f[i-4, j]/280.0) / (dx[0])
+    if dims == 3:
+        dfdx = dfdx[...,np.newaxis]; dfdy = dfdy[...,np.newaxis]; dfdz = dfdz[...,np.newaxis]
+
+    return dfdx, dfdy, dfdz
+
+
+#Handle arbitrary dimensionality for numpy gradient method
+def eigthOrderGrad2Dv2(f, dx):
+    shapeF = np.shape(f); dims = len(shapeF)
+    if dims > 2 and shapeF[2] == 1:
+        f = np.squeeze(f); shapeF = np.shape(f)
+    nrows, ncols = shapeF
+    dfdx = np.zeros((nrows, ncols))
+    dfdy = np.zeros((nrows, ncols))
+    dfdz = np.zeros((nrows, ncols))
+    [dfdx, dfdy] = np.gradient(f,dx[0],dx[1])
+
+    a = 1./280.; b = 4./105.; c = 1./5.; d = 4./5.
+    for i in range(4, nrows-4):
+        for j in range(4, ncols-4):
+            dfdy[i,j] = (-a*f[i, j+4] + b*f[i, j+3] - c*f[i, j+2] + d*f[i, j+1] \
+                - d*f[i, j-1] + c*f[i, j-2] - b*f[i, j-3] + a*f[i, j-4]) / (dx[1])
+            dfdx[i,j] = (-a*f[i+4, j] + b*f[i+3, j] - c*f[i+2, j] + d*f[i+1, j] \
+                - d*f[i-1, j] + c*f[i-2, j] - b*f[i-3, j] + a*f[i-4, j]) / (dx[0])
+    if dims == 3:
+        dfdx = dfdx[...,np.newaxis]; dfdy = dfdy[...,np.newaxis]; dfdz = dfdz[...,np.newaxis]
+
+    return dfdx, dfdy, dfdz
+
+
 #Compute and return rotation matrix for two provided vectors, B and V
 #Basis is b, v x b, and b x (v x b)
 def rotMatrixArbitrary(B,V):

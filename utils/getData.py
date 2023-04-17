@@ -18,6 +18,9 @@ def getData(self):
             momvars = ['n', 'ux', 'uy', 'uz','pxx']
         elif self.model == '10m':
             momvars = ['n', 'ux', 'uy', 'uz','pxx', 'pxy', 'pxz', 'pyy', 'pyz', 'pzz']
+    elif self.model == 'pkpm':
+        moments = ['n','ppar','pperp','qpar','qperp','rparperp','rperpperp']
+        momvars = ['ux','uy','uz']
     elif self.dimsV==1:
         momvars = ['ux']
         pvars = ['pxx']
@@ -36,38 +39,41 @@ def getData(self):
         nmax = int(min(self.dimsX, np.floor(self.po/2)))
         for i in range(nmax+1):
             dof = dof + int(2**(self.dimsX-i)*sp.special.comb(self.dimsX,i)*sp.special.comb(self.po-i,i))
-            
+    
     def genRead(filename,index):
         zs = getSlice.preSlice(self,filename)
-        if self.model == 'vm':
+        if self.model == 'vm' or self.model == 'pkpm':
             comp = str(index*dof) + ':' + str((index+1)*dof)
             data0 = pg.GData(filename, comp=comp, z0=zs[0], z1=zs[1], z2=zs[2], z3=zs[3], z4=zs[4], z5=zs[5])
             if varidGlobal[0:4] == 'dist':
                 data0 = pg.GData(filename, z0=zs[0], z1=zs[1], z2=zs[2], z3=zs[3], z4=zs[4], z5=zs[5])
             polyOrder = self.po
-            #if not (isinstance(self.params.get('polyOrderOverride'), type(None))):
-            #    polyOrder = self.params["polyOrderOverride"]
-            
-            proj = pg.GInterpModal(data0, polyOrder, self.basis)
-            coords, data = proj.interpolate()
+            if not (isinstance(self.params.get('polyOrderOverride'), type(None))):
+                proj = pg.GInterpModal(data0, polyOrder, self.basis, self.params["polyOrderOverride"])
+            else:
+                proj = pg.GInterpModal(data0, polyOrder, self.basis)
+            if self.suffix == '.gkyl':
+                coords, data = proj.interpolate(index)
+            else:
+                coords, data = proj.interpolate()
         elif self.model == '5m' or self.model == '10m':
             comp = index
             data0 = pg.data.GData(filename, comp=comp, z0=zs[0], z1=zs[1], z2=zs[2])
             data = data0.getValues()
             coords = data0.getGrid()
             if self.suffix == '.gkyl':
-
                 data = data[...,comp]
                 data = data[...,np.newaxis]
+
         else:
             raise RuntimeError("You have confused me! I don't know what to do with data of type {0}.".format(self.model))
         if self.suffix == '.gkyl':
-            print('Warning, gkyl0 data files do not contain time date. time set to fileNum')
+            print('Warning, gkyl0 data files do not contain time date. Time set to fileNum')
             self.time = self.fileNum
         else:
             self.time = data0.meta['time']
             if self.time is None:
-                print('Warning, data file does not contain time date. time set to fileNum')
+                print('Warning, data file does not contain time date. Time set to fileNum')
                 self.time = self.fileNum
 
         return coords, data
@@ -95,6 +101,12 @@ def getData(self):
             filename = self.filenameBase + spec + '_' + str(self.fileNum) + self.suffix
             coords, data = genRead(filename, index)
             data = data / self.mu[specIndex]
+        elif self.model == 'pkpm':
+            index = moments.index(varid[0])
+            specIndex = self.speciesFileIndex.index(spec)
+            filename = self.filenameBase + spec + '_pkpm_moms_' + str(self.fileNum) + self.suffix
+            coords, data = genRead(filename, index)
+            data = data / self.mu[specIndex]
         return coords, data
 
     def getGenMom(varid): #Returns M1 = n*u
@@ -106,6 +118,11 @@ def getData(self):
                 coords, data = genRead(filename, index)
             elif self.model == '5m' or self.model == '10m':
                 filename = self.filenameBase + spec + '_' + str(self.fileNum) + self.suffix
+                coords, data = genRead(filename, index)
+                specIndex = self.speciesFileIndex.index(spec)
+                data = data / self.mu[specIndex]
+            elif self.model == 'pkpm':
+                filename = self.filenameBase + 'fluid_' + spec + '_' + str(self.fileNum) + self.suffix
                 coords, data = genRead(filename, index)
                 specIndex = self.speciesFileIndex.index(spec)
                 data = data / self.mu[specIndex]
@@ -134,6 +151,12 @@ def getData(self):
             elif self.model == '5m' or self.model == '10m':
                 filename = self.filenameBase + spec + '_' + str(self.fileNum) + self.suffix
                 index = momvars.index(varid[0:3])
+                coords, data = genRead(filename, index)
+                specIndex = self.speciesFileIndex.index(spec)
+                data = data / self.mu[specIndex]
+            elif self.model == 'pkpm':
+                filename = self.filenameBase + spec + '_pkpm_moms_' + str(self.fileNum) + self.suffix
+                index = moments.index(varid[0:varid.find('_')])
                 coords, data = genRead(filename, index)
                 specIndex = self.speciesFileIndex.index(spec)
                 data = data / self.mu[specIndex]
@@ -313,7 +336,7 @@ def getData(self):
         coords, data = getGenP(varid)
         spec = varid[varid.find('_')+1:]
       
-        if self.params["restFrame"]:
+        if self.params["restFrame"] and not self.model == 'pkpm':
             if self.model == '5m':
                 coords, nux = getGenMom('ux_' + spec)
                 coords, nuy = getGenMom('uy_' + spec)
@@ -333,38 +356,49 @@ def getData(self):
       
     def getTrP(varid): # Return Tr(P)
         spec = '_' + varid[varid.find('_')+1:]
-        coords, pyy = getPress('pyy' + spec)
-        coords, pzz = getPress('pzz' + spec)
-        coords, pxx = getPress('pxx' + spec)
-        data = pxx + pyy + pzz
+        if self.model == 'pkpm':
+            coords, ppar = getPress('ppar' + spec)
+            coords, pperp = getPress('pperp' + spec)
+            data = ppar + 2.*pperp
+        else:
+            coords, pyy = getPress('pyy' + spec)
+            coords, pzz = getPress('pzz' + spec)
+            coords, pxx = getPress('pxx' + spec)
+            data = pxx + pyy + pzz
         return coords, data
 
     def getPressPar(varid): #Return ppar = Pij bi bj
         spec = '_' + varid[varid.find('_')+1:]
-        coords, pxx = getPress('pxx' + spec)
-        coords, pyy = getPress('pyy' + spec)
-        coords, pzz = getPress('pzz' + spec)
-        coords, pxy = getPress('pxy' + spec)
-        coords, pxz = getPress('pxz' + spec)
-        coords, pyz = getPress('pyz' + spec)
-        coords, bx = getGenField('bx')
-        coords, by = getGenField('by')
-        coords, bz = getGenField('bz')
-        B = np.sqrt(bx**2 + by**2 + bz**2)
-        bx = bx / B
-        by = by / B
-        bz = bz / B
+        if self.model == 'pkpm':
+            coords, data = getPress('ppar' + spec)
+        else:
+            coords, pxx = getPress('pxx' + spec)
+            coords, pyy = getPress('pyy' + spec)
+            coords, pzz = getPress('pzz' + spec)
+            coords, pxy = getPress('pxy' + spec)
+            coords, pxz = getPress('pxz' + spec)
+            coords, pyz = getPress('pyz' + spec)
+            coords, bx = getGenField('bx')
+            coords, by = getGenField('by')
+            coords, bz = getGenField('bz')
+            B = np.sqrt(bx**2 + by**2 + bz**2)
+            bx = bx / B
+            by = by / B
+            bz = bz / B
 
-        data = pxx*bx**2 + pyy*by**2 + pzz*bz**2 + 2.*(pxy*bx*by + pxz*bx*bz + pyz*by*bz)
+            data = pxx*bx**2 + pyy*by**2 + pzz*bz**2 + 2.*(pxy*bx*by + pxz*bx*bz + pyz*by*bz)
         
         return coords, data
 
     def getPressPerp(varid): #Return Pperp = (Tr(P) - Ppar) / 2
         spec = '_' + varid[varid.find('_')+1:]
-        coords, trp = getTrP(spec)
-        coords, ppar = getPressPar(varid)
+        if self.model == 'pkpm':
+            coords, data = getPress('pperp' + spec)
+        else:
+            coords, trp = getTrP(spec)
+            coords, ppar = getPressPar(varid)
 
-        data = (trp - ppar) / 2.
+            data = (trp - ppar) / 2.
         return coords, data
 
     def getTemp(varid): #Return T = P / n
@@ -373,7 +407,7 @@ def getData(self):
         coords, n = getDens('n' + spec)
         if self.model == '5m':
             data = (trp / n) * 2 / 3
-        elif self.model == '10m':
+        elif self.model == '10m' or self.model == 'pkpm':
             data = (trp / n) / 3
         else:
             data = (trp / n) / self.dimsV
@@ -437,15 +471,15 @@ def getData(self):
         self.params["restFrame"] = 1 #Must be computed in the rest frame
         coords, B = getMagB(varid)
         spec = varid[varid.find('_')+1:]
+        coords, n = getDens('n' + spec)
         if varid.find('par') > -1:
-            coords, p = getPressPar(varid)
+            coords, T = getTempPar(varid)
         elif varid.find('perp') > -1:
-            coords, p = getPressPerp(varid)
+            coords, T = getTempPerp(varid)
         else:
-            coords, p = getTrP(varid)
-            p = p / self.dimsV
+            coords, T = getTemp(varid)     
         self.params["restFrame"] = tmp
-        data = 2*p*self.mu0 / B**2
+        data = 2*n*T*self.mu0 / B**2
         return coords, data
 
     def getMu(varid):
@@ -791,9 +825,9 @@ def getData(self):
         for d in range(dims):
             dx[d] = coords[d][1] - coords[d][0]
 
-        [dbxdx,dbxdy,dbxdz] = auxFuncs.genGradient(bx,dx)
-        [dbydx,dbydy,dbydz] = auxFuncs.genGradient(by,dx)
-        [dbzdx,dbzdy,dbzdz] = auxFuncs.genGradient(bz,dx)
+        [dbxdx,dbxdy,dbxdz] = auxFuncs.eigthOrderGrad2D(bx,dx)
+        [dbydx,dbydy,dbydz] = auxFuncs.eigthOrderGrad2D(by,dx)
+        [dbzdx,dbzdy,dbzdz] = auxFuncs.eigthOrderGrad2D(bz,dx)
 
         #kappa = b . (grad b) 
         kappax = bx*dbxdx + by*dbxdy + bz*dbxdz 
@@ -818,7 +852,7 @@ def getData(self):
         data = sortDrifts(varid, drift, qnE)
         return coords, data
 
-    def getGradBDrift(varid):  #GradB drift energization. Based on Appendix F of Juno et al 2021
+    def getCurvatureDriftv2(varid): #Curvature drift energization. Based on Appendix F of Juno et al 2021
         coords, bx = getGenField('bx')
         coords, by = getGenField('by')
         coords, bz = getGenField('bz')
@@ -833,9 +867,92 @@ def getData(self):
         dx = np.zeros(dims)
         for d in range(dims):
             dx[d] = coords[d][1] - coords[d][0]
-        [dbxdx,dbxdy,dbxdz] = auxFuncs.genGradient(bx/B,dx)
-        [dbydx,dbydy,dbydz] = auxFuncs.genGradient(by/B,dx)
-        [dbzdx,dbzdy,dbzdz] = auxFuncs.genGradient(bz/B,dx)
+
+        [dbxdx,dbxdy,dbxdz] = auxFuncs.eigthOrderGrad2D(bx,dx)
+        [dbydx,dbydy,dbydz] = auxFuncs.eigthOrderGrad2D(by,dx)
+        [dbzdx,dbzdy,dbzdz] = auxFuncs.eigthOrderGrad2D(bz,dx)
+
+        #kappa = b . (grad b) 
+        kappax = bx*dbxdx + by*dbxdy + bz*dbxdz 
+        kappay = bx*dbydx + by*dbydy + bz*dbydz
+        kappaz = bx*dbzdx + by*dbzdy + bz*dbzdz
+
+        tmp = self.params["restFrame"]
+        self.params["restFrame"] = 1 #Must be computed in the rest frame
+        spec = varid[varid.find('_')+1:]
+        coords, Ppar = getPressPar(varid)
+        self.params["restFrame"] = tmp
+        spec = varid[varid.find('_')+1:]
+        specIndex = self.speciesFileIndex.index(spec)
+        q = self.q[specIndex]
+        coords, n = getDens('n_' + spec)
+        drift = np.array([Ppar*(by*kappaz - bz*kappay) / (q*n*B),\
+                     Ppar*(bz*kappax - bx*kappaz) / (q*n*B),\
+                     Ppar*(bx*kappay - by*kappax) / (q*n*B)])
+        qnE = np.array([q*n*ex, q*n*ey, q*n*ez])
+
+        data = sortDrifts(varid, drift, qnE)
+        return coords, data
+
+    def getBetatronDrift(varid): #Betatron drift energization. Based on Appendix F of Juno et al 2021
+        coords, bx = getGenField('bx')
+        coords, by = getGenField('by')
+        coords, bz = getGenField('bz')
+        coords, ex = getGenField('ex')
+        coords, ey = getGenField('ey')
+        coords, ez = getGenField('ez')
+        B = np.sqrt(bx**2 + by**2 + bz**2)
+        bx = bx/B; by = by/B; bz = bz/B
+
+        dims = len(np.shape(bx)) - 1
+
+        dx = np.zeros(dims)
+        for d in range(dims):
+            dx[d] = coords[d][1] - coords[d][0]
+
+        [dbxdx,dbxdy,dbxdz] = auxFuncs.eigthOrderGrad2D(bx,dx)
+        [dbydx,dbydy,dbydz] = auxFuncs.eigthOrderGrad2D(by,dx)
+        [dbzdx,dbzdy,dbzdz] = auxFuncs.eigthOrderGrad2D(bz,dx)
+
+        #kappa = b . (grad b) 
+        kappax = bx*dbxdx + by*dbxdy + bz*dbxdz 
+        kappay = bx*dbydx + by*dbydy + bz*dbydz
+        kappaz = bx*dbzdx + by*dbzdy + bz*dbzdz
+
+        tmp = self.params["restFrame"]
+        self.params["restFrame"] = 1 #Must be computed in the rest frame
+        spec = varid[varid.find('_')+1:]
+        coords, Pperp = getPressPerp(varid)
+        self.params["restFrame"] = tmp
+        spec = varid[varid.find('_')+1:]
+        specIndex = self.speciesFileIndex.index(spec)
+        q = self.q[specIndex]
+        coords, n = getDens('n_' + spec)
+        drift = np.array([-Pperp*(by*kappaz - bz*kappay) / (q*n*B),\
+                     -Pperp*(bz*kappax - bx*kappaz) / (q*n*B),\
+                     -Pperp*(bx*kappay - by*kappax) / (q*n*B)])
+        qnE = np.array([q*n*ex, q*n*ey, q*n*ez])
+
+        data = sortDrifts(varid, drift, qnE)
+        return coords, data
+
+    def getGradBDrift(varid):  #GradB drift energization. Based on Appendix F of Juno et al 2021
+        coords, bx = getGenField('bx')
+        coords, by = getGenField('by')
+        coords, bz = getGenField('bz')
+        coords, ex = getGenField('ex')
+        coords, ey = getGenField('ey')
+        coords, ez = getGenField('ez')
+        B = np.sqrt(bx**2 + by**2 + bz**2)
+        bx = bx/B; by = by/B; bz = bz/B
+        dims = len(np.shape(bx)) - 1
+
+        dx = np.zeros(dims)
+        for d in range(dims):
+            dx[d] = coords[d][1] - coords[d][0]
+        [dbxdx,dbxdy,dbxdz] = auxFuncs.eigthOrderGrad2D(bx/B,dx)
+        [dbydx,dbydy,dbydz] = auxFuncs.eigthOrderGrad2D(by/B,dx)
+        [dbzdx,dbzdy,dbzdz] = auxFuncs.eigthOrderGrad2D(bz/B,dx)
 
         cBx = dbzdy - dbydz; cBy = dbxdz - dbzdx; cBz = dbydx - dbxdy; #curl (B / B^2)
         bdotcB = bx*cBx + by*cBy + bz*cBz #b . curl (B / B^2), parallel component
@@ -878,9 +995,9 @@ def getData(self):
         spec = varid[varid.find('_')+1:]
         coords, Pperp = getPressPerp(varid)
         self.params["restFrame"] = tmp
-        [dMxdx,dMxdy,dMxdz] = auxFuncs.genGradient(-Pperp*bx/B,dx)
-        [dMydx,dMydy,dMydz] = auxFuncs.genGradient(-Pperp*by/B,dx)
-        [dMzdx,dMzdy,dMzdz] = auxFuncs.genGradient(-Pperp*bz/B,dx)
+        [dMxdx,dMxdy,dMxdz] = auxFuncs.eigthOrderGrad2D(-Pperp*bx/B,dx)
+        [dMydx,dMydy,dMydz] = auxFuncs.eigthOrderGrad2D(-Pperp*by/B,dx)
+        [dMzdx,dMzdy,dMzdz] = auxFuncs.eigthOrderGrad2D(-Pperp*bz/B,dx)
     
         cMx = dMzdy - dMydz; cMy = dMxdz - dMzdx; cMz = dMydx - dMxdy; #curl (M)
         bdotcM = bx*cMx + by*cMy + bz*cMz #b . curl (M), parallel component
@@ -916,8 +1033,16 @@ def getData(self):
         self.params["restFrame"] = 1 #Must be computed in the rest frame
         spec = varid[varid.find('_')+1:]
         coords, Pperp = getPressPerp(varid)
+        '''
+        coords, pxx = getPress('pxx_' + spec)
+        coords, pyy = getPress('pyy_' + spec)
+        coords, pzz = getPress('pzz_' + spec)
+
+        p = (pxx+pyy+pzz)/3. 
+        Pperp = p
+        '''
         self.params["restFrame"] = tmp
-        [dpdx,dpdy,dpdz] = auxFuncs.genGradient(Pperp,dx)
+        [dpdx,dpdy,dpdz] = auxFuncs.eigthOrderGrad2D(Pperp,dx)
         
         specIndex = self.speciesFileIndex.index(spec)
         q = self.q[specIndex]
@@ -951,9 +1076,10 @@ def getData(self):
         coords, pzz = getPress('pzz_' + spec)
         coords, pxy = getPress('pxy_' + spec)
         coords, pxz = getPress('pxz_' + spec)
-        coords, pyz = getPress('pyz_' + spec)
+        coords, pyz = getPress('pyz_' + spec)     
         self.params["restFrame"] = tmp
         
+        p = (pxx+pyy+pzz)/3. 
         pixx = pxx - Pperp - (Ppar - Pperp)*bx*bx;
         piyy = pyy - Pperp - (Ppar - Pperp)*by*by;
         pizz = pzz - Pperp - (Ppar - Pperp)*bz*bz;
@@ -966,12 +1092,12 @@ def getData(self):
         dx = np.zeros(dims)
         for d in range(dims):
             dx[d] = coords[d][1] - coords[d][0]
-        [dpixxdx,dpixxdy,dpixxdz] = auxFuncs.genGradient(pixx,dx)
-        [dpiyydx,dpiyydy,dpiyydz] = auxFuncs.genGradient(piyy,dx)
-        [dpizzdx,dpizzdy,dpizzdz] = auxFuncs.genGradient(pizz,dx)
-        [dpixydx,dpixydy,dpixydz] = auxFuncs.genGradient(pixy,dx)
-        [dpixzdx,dpixzdy,dpixzdz] = auxFuncs.genGradient(pixz,dx)
-        [dpiyzdx,dpiyzdy,dpiyzdz] = auxFuncs.genGradient(piyz,dx)
+        [dpixxdx,dpixxdy,dpixxdz] = auxFuncs.eigthOrderGrad2D(pixx,dx)
+        [dpiyydx,dpiyydy,dpiyydz] = auxFuncs.eigthOrderGrad2D(piyy,dx)
+        [dpizzdx,dpizzdy,dpizzdz] = auxFuncs.eigthOrderGrad2D(pizz,dx)
+        [dpixydx,dpixydy,dpixydz] = auxFuncs.eigthOrderGrad2D(pixy,dx)
+        [dpixzdx,dpixzdy,dpixzdz] = auxFuncs.eigthOrderGrad2D(pixz,dx)
+        [dpiyzdx,dpiyzdy,dpiyzdz] = auxFuncs.eigthOrderGrad2D(piyz,dx)
 
 
         specIndex = self.speciesFileIndex.index(spec)
@@ -986,6 +1112,8 @@ def getData(self):
         return coords, data
 
 
+
+
     ###################################################################
     #End read functions
     #################################################################### 
@@ -996,7 +1124,10 @@ def getData(self):
         if varidGlobal[0:3] == 'exb':
             coords, data = getExB(varidGlobal)
         elif varidGlobal[0:9] == 'curvature':
-            coords, data = getCurvatureDrift(varidGlobal)
+            if varidGlobal.find('v2') >= 0:
+                coords, data = getCurvatureDriftv2(varidGlobal)
+            else:
+                coords, data = getCurvatureDrift(varidGlobal)
         elif varidGlobal[0:5] == 'gradb':
             coords, data = getGradBDrift(varidGlobal)
         elif varidGlobal[0:6] == 'diamag':
@@ -1005,6 +1136,8 @@ def getData(self):
             coords, data = getMagnetizationDrift(varidGlobal)
         elif varidGlobal[0:5] == 'agyro':
             coords, data = getAgyrotropicDrift(varidGlobal)
+        elif varidGlobal[0:4] == 'beta':
+            coords, data = getBetatronDrift(varidGlobal)
     elif varidGlobal[0:4] == 'beta':
         coords, data = getBeta(varidGlobal)
     elif varidGlobal[0] == 'b': #magnetic fields

@@ -8,18 +8,20 @@ from utils import plotParams
 #This file computes the change in energies from the moment and fields files.
 #Tested to handle g0 and g2: VM, 5M, 10M
 #Requires a _params.txt file in your data directory of the form gkeyllOutputBasename_params.txt! See example_params.txt for formatting
-paramFile = '/Users/jtenbarg/Desktop/runs/gemEddyv43/Data/gem_params.txt' 
+paramsFile = '/Users/jtenbarg/Desktop/runs/gemG0M112x56HiVNoisev2/Data/gem_params.txt';
+#paramsFile = '/Users/jtenbarg/Desktop/runs/HarrisG0Bg0.1/Data/HarrisBg1_params.txt';
+paramsFile = '/Users/jtenbarg/Desktop/Runs/PKPM/OT2DPKPMv1/pkpm_ot_p1-params.txt'
 
 fileNumStart = 0
-fileNumEnd = 20
+fileNumEnd = 75
 fileSkip = 1
-suffix = '.bp'
+suffix = '.gkyl'
 sub0 = 1
-saveFigs = 0
+saveFigs = 1
 
 varid = ''
 params = {} #Initialize dictionary to store plotting and other parameters
-tmp = gkData.gkData(paramFile,fileNumStart,suffix,varid,params) #Initialize constants for normalization
+tmp = gkData.gkData(paramsFile,fileNumStart,suffix,varid,params) #Initialize constants for normalization
 
 #below limits [z0, z1, z2,...] normalized to params["axesNorm"]
 params["lowerLimits"] = [-1.e6, -1.e6, -1.e6, -1.e6, -1.e6, -1e6] 
@@ -67,23 +69,23 @@ t = np.zeros(nt)
 params["restFrame"] = 0
 for i in range(nt):
     
-    ex = gkData.gkData(paramFile,ts[i],suffix,'ex',params).compactRead()
-    ey = gkData.gkData(paramFile,ts[i],suffix,'ey',params).compactRead()
-    ez = gkData.gkData(paramFile,ts[i],suffix,'ez',params).compactRead()
+    ex = gkData.gkData(paramsFile,ts[i],suffix,'ex',params).compactRead()
+    ey = gkData.gkData(paramsFile,ts[i],suffix,'ey',params).compactRead()
+    ez = gkData.gkData(paramsFile,ts[i],suffix,'ez',params).compactRead()
     t[i] = ex.time*ex.params["timeNorm"]
     
-    bx = gkData.gkData(paramFile,ts[i],suffix,'bx',params).compactRead()
-    by = gkData.gkData(paramFile,ts[i],suffix,'by',params).compactRead()
-    bz = gkData.gkData(paramFile,ts[i],suffix,'bz',params).compactRead()
+    bx = gkData.gkData(paramsFile,ts[i],suffix,'bx',params).compactRead()
+    by = gkData.gkData(paramsFile,ts[i],suffix,'by',params).compactRead()
+    bz = gkData.gkData(paramsFile,ts[i],suffix,'bz',params).compactRead()
     E2 = (ex**2 + ey**2 + ez**2)*ex.eps0 / 2.
     B2 = (bx**2 + by**2 + bz**2)/ 2. / bx.mu0
     E[i] = getattr(E2.integrate(), 'data')
     B[i] = getattr(B2.integrate(), 'data')
 
 
-    jx = gkData.gkData(paramFile,ts[i],suffix,'jx',params).compactRead()
-    jy = gkData.gkData(paramFile,ts[i],suffix,'jy',params).compactRead()
-    jz = gkData.gkData(paramFile,ts[i],suffix,'jz',params).compactRead()
+    jx = gkData.gkData(paramsFile,ts[i],suffix,'jx',params).compactRead()
+    jy = gkData.gkData(paramsFile,ts[i],suffix,'jy',params).compactRead()
+    jz = gkData.gkData(paramsFile,ts[i],suffix,'jz',params).compactRead()
     J2 = jx**2 + jy**2 + jz**2
     JE = jx*ex + jy*ey + jz*ez
     
@@ -93,34 +95,34 @@ for i in range(nt):
     
     for s in range(nspec):
         varid = 'n_' + tmp.speciesFileIndex[s]
-        n = gkData.gkData(paramFile,ts[i],suffix,varid,params).compactRead()
-        varid = 'pxx_' + tmp.speciesFileIndex[s]
-        pxx = gkData.gkData(paramFile,ts[i],suffix,varid,params).compactRead()
-        if pxx.model == '5m':
-            tmp = pxx
-            P[s,i] = getattr(tmp.integrate(), 'data')
+        n = gkData.gkData(paramsFile,ts[i],suffix,varid,params).compactRead()
+        if n.model == '5m':
+            varid = 'pxx_' + tmp.speciesFileIndex[s]
+            tmp =  gkData.gkData(paramsFile,ts[i],suffix,varid,params).compactRead()
         else:
-            varid = 'pyy_' + tmp.speciesFileIndex[s]
-            pyy = gkData.gkData(paramFile,ts[i],suffix,varid,params).compactRead()
-            varid = 'pzz_' + tmp.speciesFileIndex[s]
-            pzz = gkData.gkData(paramFile,ts[i],suffix,varid,params).compactRead()
-            tmp = (pxx + pyy + pzz) / 2
-            P[s,i] = getattr(tmp.integrate(), 'data') 
-            
+            varid = 'trp_' + tmp.speciesFileIndex[s]
+            tmp = (gkData.gkData(paramsFile,ts[i],suffix,varid,params).compactRead())/2.
+                
+        P[s,i] = getattr(tmp.integrate(), 'data')   
         varid = 'ux_' + tmp.speciesFileIndex[s]
-        ux = gkData.gkData(paramFile,ts[i],suffix,varid,params).compactRead()
+        ux = gkData.gkData(paramsFile,ts[i],suffix,varid,params).compactRead()
         varid = 'uy_' + tmp.speciesFileIndex[s]
-        uy = gkData.gkData(paramFile,ts[i],suffix,varid,params).compactRead()
+        uy = gkData.gkData(paramsFile,ts[i],suffix,varid,params).compactRead()
         varid = 'uz_' + tmp.speciesFileIndex[s]
-        uz = gkData.gkData(paramFile,ts[i],suffix,varid,params).compactRead()
+        uz = gkData.gkData(paramsFile,ts[i],suffix,varid,params).compactRead()
         tmp = n*(ux**2 + uy**2 + uz**2)*n.mu[s]/2
         u[s,i] = getattr(tmp.integrate(), 'data')
         
         JE = n*(ux*ex+uy*ey+uz*ez)
         Work[s+1, i] =  n.q[s]*getattr(JE.integrate(), 'data')
 
-T = P - u
+#t=ts
 Etot = np.sum(P,axis=0) + E + B
+if n.model == 'pkpm':
+    Etot = Etot + np.sum(u,axis=0)
+    T = P
+else:
+    T = P - u
 
 E0 = Etot[0]
 dT = T/E0
