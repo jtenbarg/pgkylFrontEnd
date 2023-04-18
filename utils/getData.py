@@ -44,14 +44,18 @@ def getData(self):
         zs = getSlice.preSlice(self,filename)
         if self.model == 'vm' or self.model == 'pkpm':
             comp = str(index*dof) + ':' + str((index+1)*dof)
+            polyOrder = self.po
+            basis = self.basis
             data0 = pg.GData(filename, comp=comp, z0=zs[0], z1=zs[1], z2=zs[2], z3=zs[3], z4=zs[4], z5=zs[5])
             if varidGlobal[0:4] == 'dist':
                 data0 = pg.GData(filename, z0=zs[0], z1=zs[1], z2=zs[2], z3=zs[3], z4=zs[4], z5=zs[5])
-            polyOrder = self.po
+                if self.model == 'pkpm':
+                    basis = 'pkpmhyb'
+            
             if not (isinstance(self.params.get('polyOrderOverride'), type(None))):
-                proj = pg.GInterpModal(data0, polyOrder, self.basis, self.params["polyOrderOverride"])
+                proj = pg.GInterpModal(data0, polyOrder, basis, self.params["polyOrderOverride"])
             else:
-                proj = pg.GInterpModal(data0, polyOrder, self.basis)
+                proj = pg.GInterpModal(data0, polyOrder, basis)
             if self.suffix == '.gkyl':
                 coords, data = proj.interpolate(index)
             else:
@@ -81,7 +85,10 @@ def getData(self):
     def getDist(varid): #Returns particle distribution
         spec = varid[varid.find('_')+1:] + '_'
         filename = self.filenameBase + spec + str(self.fileNum) + self.suffix
-        return genRead(filename,0)
+        index = 0
+        if self.model == 'pkpm':
+            index = int(varid[4])
+        return genRead(filename,index)
 
     def getGenField(varid): #Returns E* or B*
         index = fieldvars.index(varid[0:2])

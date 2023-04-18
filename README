@@ -7,7 +7,7 @@ All scripts require a runname_params.txt file to exist in the data directory. Th
 ##########################################
 Table of choices for varid. i,j, k = x,y,z. spec = species as in filename
 Note that case is ignored
--Particle distribution: dist_spec
+-Particle distribution: dist_spec, specify dist0_spec or dist1_spec for PKPM
 -EM fields: ei or bi
 -Scalar potentials: phi, psi 
 -Magnitude E or B: mage or magb
