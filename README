@@ -11,6 +11,7 @@ Note that case is ignored
 -EM fields: ei or bi
 -Scalar potentials: phi, psi 
 -Magnitude E or B: mage or magb
+-Div E or B: dive or divb
 -Density: n_spec
 -Flow velocity: ui_spec
 -Stream function: stream_spec

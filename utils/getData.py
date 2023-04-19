@@ -197,12 +197,44 @@ def getData(self):
         data = np.sqrt(bx**2 + by**2 + bz**2)
         return coords, data
 
+    def getDivB(varid): #Return div B
+        coords, bx = getGenField('bx')
+        coords, by = getGenField('by')
+        coords, bz = getGenField('bz')
+        dims = len(np.shape(bx)) - 1
+        dx = np.zeros(dims)
+        for d in range(dims):
+            dx[d] = coords[d][1] - coords[d][0]
+        [duxdx,duxdy,duxdz] = auxFuncs.genGradient(bx,dx)
+        [duydx,duydy,duydz] = auxFuncs.genGradient(by,dx)
+        [duzdx,duzdy,duzdz] = auxFuncs.genGradient(bz,dx)
+
+        div = (duxdx + duydy + duzdz)
+        
+        return coords, div
+
     def getMagE(varid): #Return |E|
         coords, ex = getGenField('ex')
         coords, ey = getGenField('ey')
         coords, ez = getGenField('ez')
         data = np.sqrt(ex**2 + ey**2 + ez**2)
         return coords, data
+
+    def getDivE(varid): #Return div E
+        coords, ex = getGenField('ex')
+        coords, ey = getGenField('ey')
+        coords, ez = getGenField('ez')
+        dims = len(np.shape(ex)) - 1
+        dx = np.zeros(dims)
+        for d in range(dims):
+            dx[d] = coords[d][1] - coords[d][0]
+        [duxdx,duxdy,duxdz] = auxFuncs.genGradient(ex,dx)
+        [duydx,duydy,duydz] = auxFuncs.genGradient(ey,dx)
+        [duzdx,duzdy,duzdz] = auxFuncs.genGradient(ez,dx)
+
+        div = (duxdx + duydy + duzdz)
+        
+        return coords, div
 
     def getPsi(varid): #Return psi
         if self.dimsX < 2:
@@ -1154,6 +1186,11 @@ def getData(self):
             coords, data = getEpar(varidGlobal)
         else:
             coords, data = getGenField(varidGlobal)
+    elif varidGlobal[0:3] == 'div':
+        if varidGlobal[3] == 'e':
+            coords, data = getDivE(varidGlobal)
+        else:
+            coords, data = getDivB(varidGlobal)
     elif varidGlobal[0] == 'n': #density
         coords, data = getDens(varidGlobal)
     elif varidGlobal[0] == 'u': #flow velocity
