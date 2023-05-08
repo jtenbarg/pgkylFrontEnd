@@ -46,7 +46,7 @@ def gkPlot(self,show=1,save=0):
         if self.params["symBar"]:
             maxLim = max(abs(self.max), abs(self.min))
             plt.clim(-maxLim, maxLim)
-            plt.clim(-1.33, 1.33)
+            
             #plt.gci().colorbar.set_clim(-maxLim, maxLim)
             #plt.gca().colorbar.set_clim(-maxLim, maxLim)
        
