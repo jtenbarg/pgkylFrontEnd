@@ -35,9 +35,10 @@ tmp = gkData.gkData(paramFile,fileNumStart,suffix,varid,params) #Initialize cons
 #below limits [z0, z1, z2,...] normalized to params["axesNorm"]
 params["lowerLimits"] = [0e0,  -1.e6, -1.e6, -1.e6, -1.e6, -1e6] 
 params["upperLimits"] = [0e0,  1.e6,  1.e6,  1.e6,  1.e6,  1.e6]
-params["fieldAlign"] = 1 #Align FPC to the local magnetic field. Only use for 3V data.
+params["fieldAlign"] = 0 #Align FPC to the local magnetic field. Only use for 3V data.
 #params["driftAlign"] = 'curvatureDrift' #Rotate FPC with B and drift. Only use for 3V data.
 #params["frameXform"] = [1,1,1] #Transform frames, including electric field. This must be moved to the timeloop for time dependent xforms
+params["useDeltaF"] = 0
 
 #Define species to normalize and lengths/times 
 refSpeciesAxesConf = 'elc'; refSpeciesAxesVel = 'elc'
@@ -163,15 +164,15 @@ if plotAny:
 	if plotReducedFPCvsTime:
 		axNorm = params["axesNorm"]; indShift = tmp.dimsX
 		titles = ['$C_0$', '$C_1$', '$C_2$' , '$C$']
-		for i in range(dimsV+1):
+		for i in range(dimsV):
 			
 			for j in reversed(range(dimsV)):
 				d = list(set(VInd) - set(indCombos1V[j]))[0]
 
 				pData = []
 				for it in range(nt):
-					if i > dimsV-1:
-						tmpData = np.sum(fpc[it],axis=0)
+					if 0: #i > dimsV-1:
+						tmpData = np.sum(fpc[:it],axis=0)
 						pData.append(np.sum(tmpData,axis=indCombos1V[j])*dvCombo1V[j])
 					else:
 						pData.append(np.sum(fpc[it][i],axis=indCombos1V[j])*dvCombo1V[j])

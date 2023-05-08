@@ -18,8 +18,12 @@ def computeFPC(paramFile,fileNum,suffix,spec,params):
 	for i in range(3):
 		E.append(np.atleast_1d(getattr(gkData.gkData(paramFile,fileNum,suffix,'e' + dirs[i],params).compactRead(), 'data')))
 		B.append(np.atleast_1d(getattr(gkData.gkData(paramFile,fileNum,suffix,'b' + dirs[i],params).compactRead(), 'data')))
-
 	fTmp = gkData.gkData(paramFile,fileNum,suffix,'dist_'+spec,params).compactRead()
+	if not (isinstance(params.get('useDeltaF'), type(None))):
+		if params["useDeltaF"]:
+			f0 = gkData.gkData(paramFile,0,suffix,'dist_'+spec,params).compactRead()
+			fTmp = fTmp - f0
+
 	f = fTmp.data
 	coords = fTmp.coords
 	dx = fTmp.dx
