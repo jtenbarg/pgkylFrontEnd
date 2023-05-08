@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 
-SMALL_SIZE = 14
-MEDIUM_SIZE = 16
-BIGGER_SIZE = 20
+SMALL_SIZE = 16
+MEDIUM_SIZE = 18
+BIGGER_SIZE = 22
 plt.rc('font', size=MEDIUM_SIZE)          # controls default text sizes
 plt.rc('axes', titlesize=MEDIUM_SIZE)     # fontsize of the axes title
 plt.rc('axes', labelsize=BIGGER_SIZE)    # fontsize of the x and y labels

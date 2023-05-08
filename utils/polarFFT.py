@@ -68,14 +68,14 @@ def polarFFTBin(k, bgDir, polar_index, fft_matrix):
                     ikperp = polar_index[i,j]   
                     fft_isok[ikperp] = fft_isok[ikperp] + np.abs(fft_matrix[i,j])**2
     else:
-        nkb = bgDir
-        fft_isok = np.zeros(nkpolar, nkb)
+        shape = np.shape(fft_matrix)
+        fft_isok = np.zeros((nkpolar, shape[bgDir]))
 
         newFFTMatrix = np.transpose(fft_matrix, (perpind[0], perpind[1], bgDir)) #Re-order matrix into [perp1, perp2, bgDir]
         
         for i in range(0, nkp[0]):
             for j in range(0, nkp[1]):
-                for k in range(0, nkb):
+                for k in range(0, shape[bgDir]):
                     ikperp = polar_index[i,j]
                     fft_isok[ikperp,k] = fft_isok[ikperp,k] + np.abs(newFFTMatrix[i,j,k])**2
 

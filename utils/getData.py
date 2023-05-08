@@ -361,7 +361,11 @@ def getData(self):
             coords, j = getJ('j' + comp)
             data = j*e
         else: #Full J.E
-            for id in range(self.dimsV):
+            if self.model == 'vm':
+                idRange = self.dimsV
+            else:
+                idRange = 3
+            for id in range(idRange):
                 coords, e = getGenField('e' + suf[id])
                 coords, j = getJ('j' + suf[id])
                 if id == 0:
@@ -1105,50 +1109,53 @@ def getData(self):
         B = np.sqrt(bx**2 + by**2 + bz**2)
         bx = bx/B; by = by/B; bz = bz/B
        
-        spec = varid[varid.find('_')+1:]
-        tmp = self.params["restFrame"]
-        self.params["restFrame"] = 1 #Must be computed in the rest frame
-        coords, Pperp = getPressPerp(varid)
-        coords, Ppar = getPressPar(varid)
-        coords, pxx = getPress('pxx_' + spec)
-        coords, pyy = getPress('pyy_' + spec)
-        coords, pzz = getPress('pzz_' + spec)
-        coords, pxy = getPress('pxy_' + spec)
-        coords, pxz = getPress('pxz_' + spec)
-        coords, pyz = getPress('pyz_' + spec)     
-        self.params["restFrame"] = tmp
-        
-        p = (pxx+pyy+pzz)/3. 
-        pixx = pxx - Pperp - (Ppar - Pperp)*bx*bx;
-        piyy = pyy - Pperp - (Ppar - Pperp)*by*by;
-        pizz = pzz - Pperp - (Ppar - Pperp)*bz*bz;
-        pixy = pxy - (Ppar - Pperp)*bx*by;
-        pixz = pxz - (Ppar - Pperp)*bx*bz;
-        piyz = pyz - (Ppar - Pperp)*by*bz;
+        if self.model == 'pkpm':
+            return coords, np.zeros_like(bx)
+        else:
+            spec = varid[varid.find('_')+1:]
+            tmp = self.params["restFrame"]
+            self.params["restFrame"] = 1 #Must be computed in the rest frame
+            coords, Pperp = getPressPerp(varid)
+            coords, Ppar = getPressPar(varid)
+            coords, pxx = getPress('pxx_' + spec)
+            coords, pyy = getPress('pyy_' + spec)
+            coords, pzz = getPress('pzz_' + spec)
+            coords, pxy = getPress('pxy_' + spec)
+            coords, pxz = getPress('pxz_' + spec)
+            coords, pyz = getPress('pyz_' + spec)     
+            self.params["restFrame"] = tmp
             
-        dims = len(np.shape(bx)) - 1
-      
-        dx = np.zeros(dims)
-        for d in range(dims):
-            dx[d] = coords[d][1] - coords[d][0]
-        [dpixxdx,dpixxdy,dpixxdz] = auxFuncs.eigthOrderGrad2D(pixx,dx)
-        [dpiyydx,dpiyydy,dpiyydz] = auxFuncs.eigthOrderGrad2D(piyy,dx)
-        [dpizzdx,dpizzdy,dpizzdz] = auxFuncs.eigthOrderGrad2D(pizz,dx)
-        [dpixydx,dpixydy,dpixydz] = auxFuncs.eigthOrderGrad2D(pixy,dx)
-        [dpixzdx,dpixzdy,dpixzdz] = auxFuncs.eigthOrderGrad2D(pixz,dx)
-        [dpiyzdx,dpiyzdy,dpiyzdz] = auxFuncs.eigthOrderGrad2D(piyz,dx)
+            p = (pxx+pyy+pzz)/3. 
+            pixx = pxx - Pperp - (Ppar - Pperp)*bx*bx;
+            piyy = pyy - Pperp - (Ppar - Pperp)*by*by;
+            pizz = pzz - Pperp - (Ppar - Pperp)*bz*bz;
+            pixy = pxy - (Ppar - Pperp)*bx*by;
+            pixz = pxz - (Ppar - Pperp)*bx*bz;
+            piyz = pyz - (Ppar - Pperp)*by*bz;
+                
+            dims = len(np.shape(bx)) - 1
+          
+            dx = np.zeros(dims)
+            for d in range(dims):
+                dx[d] = coords[d][1] - coords[d][0]
+            [dpixxdx,dpixxdy,dpixxdz] = auxFuncs.eigthOrderGrad2D(pixx,dx)
+            [dpiyydx,dpiyydy,dpiyydz] = auxFuncs.eigthOrderGrad2D(piyy,dx)
+            [dpizzdx,dpizzdy,dpizzdz] = auxFuncs.eigthOrderGrad2D(pizz,dx)
+            [dpixydx,dpixydy,dpixydz] = auxFuncs.eigthOrderGrad2D(pixy,dx)
+            [dpixzdx,dpixzdy,dpixzdz] = auxFuncs.eigthOrderGrad2D(pixz,dx)
+            [dpiyzdx,dpiyzdy,dpiyzdz] = auxFuncs.eigthOrderGrad2D(piyz,dx)
 
 
-        specIndex = self.speciesFileIndex.index(spec)
-        q = self.q[specIndex]
-        coords, n = getDens('n_' + spec)
-        drift = np.array([ (by*(dpixzdx + dpiyzdy + dpizzdz) - bz*(dpixydx + dpiyydy + dpiyzdz)) / (q*n*B),\
-                               (bz*(dpixxdx + dpixydy + dpixzdz) - bx*(dpixzdx + dpiyzdy + dpizzdz)) / (q*n*B),\
-                               (bx*(dpixydx + dpiyydy + dpiyzdz) - by*(dpixxdx + dpixydy + dpixzdz)) / (q*n*B)])
-        qnE = np.array([q*n*ex, q*n*ey, q*n*ez])
+            specIndex = self.speciesFileIndex.index(spec)
+            q = self.q[specIndex]
+            coords, n = getDens('n_' + spec)
+            drift = np.array([ (by*(dpixzdx + dpiyzdy + dpizzdz) - bz*(dpixydx + dpiyydy + dpiyzdz)) / (q*n*B),\
+                                   (bz*(dpixxdx + dpixydy + dpixzdz) - bx*(dpixzdx + dpiyzdy + dpizzdz)) / (q*n*B),\
+                                   (bx*(dpixydx + dpiyydy + dpiyzdz) - by*(dpixxdx + dpixydy + dpixzdz)) / (q*n*B)])
+            qnE = np.array([q*n*ex, q*n*ey, q*n*ez])
 
-        data = sortDrifts(varid, drift, qnE)
-        return coords, data
+            data = sortDrifts(varid, drift, qnE)
+            return coords, data
 
 
 
