@@ -160,18 +160,21 @@ if plotAny:
 	if showFigs:
 		plt.show()
 
+	finali = dimsV
+	if dimsV > 1:
+		finali = dimsV + 1 #Add extra iteration for sum of FPCs
 	#Plot 1v reduced FPCs vs time
 	if plotReducedFPCvsTime:
 		axNorm = params["axesNorm"]; indShift = tmp.dimsX
 		titles = ['$C_0$', '$C_1$', '$C_2$' , '$C$']
-		for i in range(dimsV):
-			
+		
+		for i in range(finali):
 			for j in reversed(range(dimsV)):
 				d = list(set(VInd) - set(indCombos1V[j]))[0]
 
 				pData = []
 				for it in range(nt):
-					if 0: #i > dimsV-1:
+					if i > dimsV-1:
 						tmpData = np.sum(fpc[:it],axis=0)
 						pData.append(np.sum(tmpData,axis=indCombos1V[j])*dvCombo1V[j])
 					else:
@@ -191,6 +194,37 @@ if plotAny:
 					print('Figure written to ',saveFilename)
 				if showFigs:
 					plt.show()	
+
+		#Plot cumulative sums
+		for i in range(finali):		
+			for j in reversed(range(dimsV)):
+				d = list(set(VInd) - set(indCombos1V[j]))[0]
+				tmpData = np.sum(fpc[:it],axis=0)
+				pData = []
+				for it in range(nt):
+					if i > dimsV-1:
+						tmpData = np.sum(tmpData,axis=0)
+						pData.append(np.sum(tmpData,axis=indCombos1V[j])*dvCombo1V[j])
+						figTitle = titles[-1]
+					else:
+						pData.append(np.sum(tmpData[i],axis=indCombos1V[j])*dvCombo1V[j])
+						figTitle = titles[i]
+
+				maxData = np.max(np.abs(pData))
+
+				plt.figure(figsize=(12,8))
+				c1 = plt.pcolormesh(coordsPlot[d]/axNorm[d+indShift], t, pData, vmin=-maxData, vmax=maxData, cmap = params["colormap"], shading="gouraud")
+				plt.xlabel(params["axesLabels"][d+indShift])
+				plt.ylabel('$t$' + params["timeLabel"])
+				plt.title(figTitle)
+				plt.colorbar(c1)
+				plt.grid(True)
+				if saveFigs:
+					saveFilename = figBase + '_Red1V_cumSum_f' + str(i) + '_v' + str(d) + '_frame=' + str(ts[it]) + '.png'
+					plt.savefig(saveFilename, dpi=300)
+					print('Figure written to ',saveFilename)
+				if showFigs:
+					plt.show()	
 		
 
 	#Plot 1D reduced FPCs at given time
@@ -198,7 +232,7 @@ if plotAny:
 		tplot = plotReducedFPCatTime1D; it = np.searchsorted(ts, tplot)
 		axNorm = params["axesNorm"]; indShift = tmp.dimsX
 		titles = ['$C_0$', '$C_1$', '$C_2$' , '$C$']
-		for i in range(dimsV+1):
+		for i in range(finali):
 			plt.figure(figsize=(12,8))
 
 			for j in range(dimsV):
@@ -206,16 +240,19 @@ if plotAny:
 				if i > dimsV-1:
 					pData = np.sum(fpc[it],axis=0)
 					pData = np.sum(pData,axis=indCombos1V[j])*dvCombo1V[j]
+					figTitle = titles[-1]
+
 				else:
 					pData = np.sum(fpc[it][i],axis=indCombos1V[j])*dvCombo1V[j]
+					figTitle = titles[i]
 				maxData = np.max(np.abs(pData))
 
 
 				plt.plot(coordsPlot[d]/axNorm[d+indShift], pData,lStyle[d],linewidth=2)
 			plt.plot(coordsPlot[d]/axNorm[d+indShift], np.zeros(len(coords[d])),'k',linewidth=1)
-			plt.xlabel('$v/v_t$')
+			plt.xlabel(params["axesLabels"][d+indShift])
 			plt.ylabel('$C$')
-			plt.title(titles[i])
+			plt.title(figTitle)
 			plt.autoscale(enable=True, axis='both', tight=True)
 			plt.grid(True)
 
@@ -233,7 +270,7 @@ if plotAny:
 		axNorm = params["axesNorm"]; indShift = tmp.dimsX
 
 		CSub = ['0','1','2', '{tot}']
-		for i in range(dimsV+1):
+		for i in range(finali):
 			if dimsV == 3:
 				for j in range(dimsV):
 					if i > dimsV-1:
