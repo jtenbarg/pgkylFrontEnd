@@ -3,8 +3,10 @@ from utils import gkData
 from utils import auxFuncs 
 
 def between(val, x):
+	dx = x[1]-x[0]
 	for i in range(len(x)):
-		if x[i] >= val:
+		#if x[i] >= val:
+		if x[i]+dx/2. >= val:
 			break
 
 	return i
@@ -32,7 +34,6 @@ def computeFPC(paramFile,fileNum,suffix,spec,params):
 	FPCPreFac =  -0.5*fTmp.q[specIndex]
 	del fTmp
 
-
 	NX = np.shape(E[0])
 	NV = np.shape(f)
 	if len(E[0]) > 1:
@@ -44,10 +45,24 @@ def computeFPC(paramFile,fileNum,suffix,spec,params):
 	XInd = list(range(0,dimsX))
 	VInd = list(range(dimsX,dimsF))
 	vCoords = coords[dimsX:dimsF]
+
+	if False:
+		dens = gkData.gkData(paramFile,fileNum,suffix,'n_'+spec,params).compactRead()
+		temp = gkData.gkData(paramFile,fileNum,suffix,'temp_'+spec,params).compactRead()
+		print(NV)
+		vth = np.sqrt(temp.data/temp.mu[specIndex])
+		fMax = np.empty_like(f)
+		for ivx in range(NV[0]):
+			for ivy in range(NV[1]):
+				for ivz in range(NV[2]):
+					v2 = vCoords[0][ivx]**2. + vCoords[0][ivy]**2. + vCoords[0][ivz]**2.
+					fMax[ivx,ivy,ivz] = (dens.data / (2*np.pi*vth*vth)**1.5) * np.exp(-v2/(2*vth*vth))
+		f = f - fMax
+
 	#Compute dfdv components
 	dfdv = []
 	for i in VInd:
-		dfdv.append(np.gradient(f, dx[i], edge_order=2, axis=i ))
+		dfdv.append(np.gradient(f, dx[i],  axis=i ))
 	for i in range(3 - len(VInd)):
 		dfdv.append(np.zeros(NV)) #Ensure dfdv is 3-vector
 
@@ -62,7 +77,6 @@ def computeFPC(paramFile,fileNum,suffix,spec,params):
 		E[0] = E[0] + xformVel[1]*B[2] - xformVel[2]*B[1]
 		E[1] = E[1] + xformVel[2]*B[0] - xformVel[0]*B[2]
 		E[2] = E[2] + xformVel[0]*B[1] - xformVel[1]*B[0]
-
 		for iv in VInd:
 			coords[iv] = coords[iv] - xformVel[iv - dimsX]
 
@@ -114,10 +128,10 @@ def computeFPC(paramFile,fileNum,suffix,spec,params):
 			for ix in range(3):
 				iRot[ix] = between(v[ix], vCoords[0])
 			dfdvLoc = np.squeeze(np.matmul(rot[ind[0:dimsX]],dfdvLoc))
-			indL = list(ind)
+			indL = list(ind); 
 			for iv in VInd:
 				indL[iv] = int(iRot[iv - dimsX])
-			ind = tuple(indL)
+			ind = tuple(indL); 
 		v2 = np.linalg.norm(v)**2
 		for iv in VInd:
 			fpc[iv-dimsX][ind] = fpc[iv-dimsX][ind] + FPCPreFac*v2*dfdvLoc[iv-dimsX]*E[iv-dimsX][ind[0:dimsX]]
@@ -137,14 +151,13 @@ def computeFPCAvg(FPCin, nTau, avgDir):
 		elif avgDir == 0:
 			win = int(np.floor(winMax / 2))
 			winL = max(0,it - win)
-			winU = min(it + 1+ win, nt)
+			winU = min(it +1+ win, nt)
 		elif avgDir == 1:
 			winL = it
-			winU = min(it+1 + winMax, nt)	
+			winU = min(it+1+ winMax, nt)	
 		else:
 			winL = it; winU = it+1
 			print("Unrecognized summing direction! avgDir must be one of -1,0,1.")
-			
 		FPCout.append(np.mean(FPCin[winL:winU],axis=0))
 
 	return FPCout

@@ -20,7 +20,7 @@ suffix = '.bp'
 varid = ''
 spec = 'elc'
 nTau = 3 #Frames over which to average. 0 or 1 does no averaging. Note centered ==> nTau must be odd and >= 3 
-avgDir = 0 #Backwards (-1), forward (1), or centered (0). Endpoints treated with telescoping windows.
+avgDir = 0 #Backward (-1), forward (1), or centered (0). Endpoints treated with telescoping windows.
 
 plotAny = 1 #Must have plotAny = 1 to plot any of the following
 plotReducedFPCvsTime = 1 #Plot 1v reduced FPCs as function of time.
@@ -38,6 +38,7 @@ params["upperLimits"] = [0e0,  1.e6,  1.e6,  1.e6,  1.e6,  1.e6]
 params["fieldAlign"] = 0 #Align FPC to the local magnetic field. Only use for 3V data.
 #params["driftAlign"] = 'curvatureDrift' #Rotate FPC with B and drift. Only use for 3V data.
 #params["frameXform"] = [1,1,1] #Transform frames, including electric field. This must be moved to the timeloop for time dependent xforms
+frameXFormTimeDep = 0 #Enable time dependent frame velocity transform. Overides above params["frameXForm"]
 params["useDeltaF"] = 0
 
 #Define species to normalize and lengths/times 
@@ -55,11 +56,20 @@ params["colormap"] = 'bwr'#Colormap for 2D plots: inferno*, bwr (red-blue), any 
 ##############################################
 
 ts = np.arange(fileNumStart, fileNumEnd+1, fileSkip)
-nt = len(ts); t = np.zeros(nt); fpc  = []
+nt = len(ts); t = np.zeros(nt); fpc  = []; work = []
 for it in range(nt):
 	print('Working on frame {0} of {1}'.format(it+1,nt))
+	workTmp = getattr(gkData.gkData(paramFile,ts[it],suffix,'work_'+spec,params).compactRead(), 'data')
+	if frameXFormTimeDep:
+		ux = getattr(gkData.gkData(paramFile,ts[it],suffix,'ux_'+spec,params).compactRead(), 'data')
+		uy = getattr(gkData.gkData(paramFile,ts[it],suffix,'uy_'+spec,params).compactRead(), 'data')
+		uz = getattr(gkData.gkData(paramFile,ts[it],suffix,'uz_'+spec,params).compactRead(), 'data')
+		params["frameXForm"] = [ux,uy,uz] #Transform frames, including electric field. 
+		workTmp = np.zeros_like(workTmp)
+
 	[coords, fpcTmp, t[it]] = FPC.computeFPC(paramFile,ts[it],suffix,spec,params)
 	fpc.append(fpcTmp)
+	work.append(workTmp)
 
 	if it==0:
 		#Setup x and v grids, dx, and dv
@@ -93,11 +103,12 @@ for it in range(nt):
 				p1v *= coords[indCombos1V[i][j]][1] - coords[indCombos1V[i][j]][0]
 
 			dvCombo1V.append(p1v)
-del fpcTmp
+del fpcTmp, workTmp
 
 #Perform time average
 if nTau > 0:
 	fpc = FPC.computeFPCAvg(fpc, nTau, avgDir)
+	work = FPC.computeFPCAvg(work, nTau, avgDir)
 
 #Compute dw/dt and dw
 dwdt = np.zeros((nt,3)); dw = np.zeros((nt,3));
@@ -127,42 +138,43 @@ if plotAny:
 		figBase += '_fieldAligned' 
 	coordsPlot = coords
 
+	if nt > 1:
+		#Plot dw/dt and dw
+		plt.figure(figsize=(12,8))
+		plt.subplot(121)
+		plt.plot(np.sum(dwdt,axis=1),t,'k', linewidth=2)
+		plt.plot(work,t,'--m', linewidth=2)
+		for d in range(dimsV):
+			plt.plot(dwdt[:,d],t,lStyle[d], linewidth=2)
+		plt.plot(np.zeros(nt),t,'k')
+		plt.ylabel('$t$' + params["timeLabel"])
+		plt.xlabel('$\partial w/\partial t$')
+		plt.autoscale(enable=True, axis='both', tight=True)
 
-	#Plot dw/dt and dw
-	plt.figure(figsize=(12,8))
-	plt.subplot(121)
-	plt.plot(np.sum(dwdt,axis=1),t,'k', linewidth=2)
-	for d in range(dimsV):
-		plt.plot(dwdt[:,d],t,lStyle[d], linewidth=2)
-	plt.plot(np.zeros(nt),t,'k')
-	plt.ylabel('$t$' + params["timeLabel"])
-	plt.xlabel('$\partial w/\partial t$')
-	plt.autoscale(enable=True, axis='both', tight=True)
-
-	plt.subplot(122)
-	plt.plot(np.sum(dw,axis=1),t,'k', linewidth=2)
-	for d in range(dimsV):
-		plt.plot(dw[:,d],t,lStyle[d], linewidth=2)
-	plt.plot(np.zeros(nt),t,'k')
-	plt.xlabel('$\Delta w$')
-	plt.autoscale(enable=True, axis='both', tight=True)
-	plt.subplots_adjust(wspace=.0)
-	plt.tick_params(
-    axis='y',          # changes apply to the x-axis
-    which='both',      # both major and minor ticks are affected
-    left=1,      # ticks along the bottom edge are off
-    right=0,         # ticks along the top edge are off
-    labelleft=False) # labels along the bottom edge are off
-	if saveFigs:
-	    saveFilename = figBase + '_dwdt_dw.png'
-	    plt.savefig(saveFilename, dpi=300)
-	    print('Figure written to ',saveFilename)
-	if showFigs:
-		plt.show()
+		plt.subplot(122)
+		plt.plot(np.sum(dw,axis=1),t,'k', linewidth=2)
+		for d in range(dimsV):
+			plt.plot(dw[:,d],t,lStyle[d], linewidth=2)
+		plt.plot(np.zeros(nt),t,'k')
+		plt.xlabel('$\Delta w$')
+		plt.autoscale(enable=True, axis='both', tight=True)
+		plt.subplots_adjust(wspace=.0)
+		plt.tick_params(
+	    axis='y',          # changes apply to the x-axis
+	    which='both',      # both major and minor ticks are affected
+	    left=1,      # ticks along the bottom edge are off
+	    right=0,         # ticks along the top edge are off
+	    labelleft=False) # labels along the bottom edge are off
+		if saveFigs:
+		    saveFilename = figBase + '_dwdt_dw.png'
+		    plt.savefig(saveFilename, dpi=300)
+		    print('Figure written to ',saveFilename)
+		if showFigs:
+			plt.show()
 
 	finali = dimsV
-	if dimsV > 1:
-		finali = dimsV + 1 #Add extra iteration for sum of FPCs
+	#if dimsV > 1:
+	#	finali = dimsV + 1 #Add extra iteration for sum of FPCs
 	#Plot 1v reduced FPCs vs time
 	if plotReducedFPCvsTime:
 		axNorm = params["axesNorm"]; indShift = tmp.dimsX
@@ -189,7 +201,7 @@ if plotAny:
 				plt.colorbar(c1)
 				plt.grid(True)
 				if saveFigs:
-					saveFilename = figBase + '_Red1V_f' + str(i) + '_v' + str(d) + '_frame=' + str(ts[it]) + '.png'
+					saveFilename = figBase + '_Red1V_f' + str(i) + '_v' + str(d) + '_frame_' + format(ts[it], '04') + '.png'
 					plt.savefig(saveFilename, dpi=300)
 					print('Figure written to ',saveFilename)
 				if showFigs:
@@ -220,7 +232,7 @@ if plotAny:
 				plt.colorbar(c1)
 				plt.grid(True)
 				if saveFigs:
-					saveFilename = figBase + '_Red1V_cumSum_f' + str(i) + '_v' + str(d) + '_frame=' + str(ts[it]) + '.png'
+					saveFilename = figBase + '_Red1V_cumSum_f' + str(i) + '_v' + str(d) + '_frame_' + format(ts[it], '04') + '.png'
 					plt.savefig(saveFilename, dpi=300)
 					print('Figure written to ',saveFilename)
 				if showFigs:
@@ -257,7 +269,7 @@ if plotAny:
 			plt.grid(True)
 
 			if saveFigs:
-				saveFilename = figBase + '_Red1V_f' + str(i) + '_frame=' + str(ts[it]) + '.png'
+				saveFilename = figBase + '_Red1V_f' + str(i) + '_frame_' + format(ts[it], '04') + '.png'
 				plt.savefig(saveFilename, dpi=300)
 				print('Figure written to ',saveFilename)
 			if showFigs:
@@ -293,7 +305,7 @@ if plotAny:
 					plt.grid(True)
 
 					if saveFigs:
-						saveFilename = figBase + '_Red2V_f' + CSub[i]  + '_v' + str(d) + '_frame=' + str(ts[it]) + '.png'
+						saveFilename = figBase + '_Red2V_f' + CSub[i]  + '_v' + str(d) + '_frame_' + format(ts[it], '04') + '.png'
 						plt.savefig(saveFilename, dpi=300)
 						print('Figure written to ',saveFilename)
 					if showFigs:
@@ -318,7 +330,7 @@ if plotAny:
 				plt.grid(True)
 
 				if saveFigs:
-					saveFilename = figBase + '_Red2V_f' + CSub[i] + '_v' + str(d) + '_frame=' + str(ts[it]) + '.png'
+					saveFilename = figBase + '_Red2V_f' + CSub[i] + '_v' + str(d) + '_frame_' + format(ts[it], '04') + '.png'
 					plt.savefig(saveFilename, dpi=300)
 					print('Figure written to ',saveFilename)
 				if showFigs:

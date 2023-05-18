@@ -109,7 +109,7 @@ show = 0 or 1 to display the figure
 save = 0 or 1 to save the figure
 
 var.integrate() behaves like the python integrate function on a gkData object, e.g.,
-var.integrate() integrates over all axes, var.integrate(axis=0) integrates over the first axis, var.integrate((0,2)) integrates over axes 0 and 2. Note that axes integrated over are squeezed from the data array, and the corresponding coords components are removed. 
+var.integrate() integrates over all axes, var.integrate(axis=0) integrates over the first axis, var.integrate(axis=(0,2)) integrates over axes 0 and 2. Note that axes integrated over are squeezed from the data array, and the corresponding coords components are removed. 
 
 Simple operations can also be performed on gkData objects, e.g., for objects A, B, C
 D = 2*A*B + C**2 will return a new gkData object D. 
