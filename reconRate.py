@@ -8,14 +8,15 @@ from utils import auxFuncs
 #Tested to handle g0 and g2: VM, 5M, 10M
 #Requires a _params.txt file in your data directory of the form gkeyllOutputBasename_params.txt! See example_params.txt for formatting
 paramsFile = '/Users/jtenbarg/Desktop/runs/gemG0M112x56HiVNoisev2/Data/gem_params.txt';
-#paramsFile = '/Users/jtenbarg/Desktop/runs/HarrisG0Bg0.1/Data/HarrisBg1_params.txt';
+paramsFile = '/Users/jtenbarg/Desktop/runs/HarrisG0Bg0.1/Data/HarrisBg1_params.txt';
+#paramsFile = '/Users/jtenbarg/My Drive/PKPM/64x32x64-vAe-0-08/Data/pkpm_gem_p1-params.txt'
 
 fileNumStart = 0
-fileNumEnd = 16
+fileNumEnd = 24
 fileSkip = 1
 suffix = '.bp'
 varid = 'psi' #See table of choices in README
-saveFigs = 1
+saveFigs = 0
 
 params = {} #Initialize dictionary to store plotting and other parameters
 tmp = gkData.gkData(paramsFile,fileNumStart,suffix,varid,params) #Initialize constants for normalization
@@ -81,7 +82,8 @@ for it in range(nt):
 	
 	psiO[it] = var.max
 	#print(saddles)
-
+#t = t*0.2/params["timeNorm"]
+#print(t)
 psiDiff = np.abs(psiO - psiX)
 dpsidt = np.gradient(psiDiff,t)
 

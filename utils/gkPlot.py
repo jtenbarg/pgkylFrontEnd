@@ -54,7 +54,7 @@ def gkPlot(self,show=1,save=0):
         if self.params["plotContours"] & (not self.varid[0:4] == 'dist'):
             saveFilename = saveFilename + self.params["varidContours"] + '_'
             cont = gkData.gkData(self.paramFile,self.fileNum,self.suffix,self.params["varidContours"],self.params).compactRead()
-            cont.readData()
+            #cont.readData()
             plt.rcParams['contour.negative_linestyle'] = 'solid'
             plt.contour(self.coords[0]/axNorm[0], self.coords[1]/axNorm[1], np.transpose(cont.data),\
                             self.params["numContours"], colors = self.params["colorContours"], linewidths=0.75)

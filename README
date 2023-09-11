@@ -36,6 +36,8 @@ Note that case is ignored
 -Tperp / Tpar: tempperppar_spec
 -Tpar / Tperp: tempparperp_spec
 -Pressure agyrotropy: agyro_spec
+-Heat flux: qi_spec for M3i data or qijk_spec for M3ijk data. DO NOTE USE params["restFrame"] = 1 for M3i data!
+-Heat flux continued: for PKPM, qpar_spec or qperp_spec
 -Beta: beta_spec
 -Beta par or perp: betapar_spec, betaperp_spec
 -Magnetic moment, p_perp_spec / B n_spec: mu_spec
@@ -57,6 +59,8 @@ Note that case is ignored
 --Drifts: Add work to the name to calculate q n E dotted into work, e.g., curvatureDriftWork_elc
 -Curvature drift component: curvatureDrifti_spec (F13 term 4 in Juno et al 2021)
 -Curvature drift component: curvatureDriftv2i_spec (F13 only ppar part of term 4 in Juno 2021)
+-Curvature drift component: curvatureDriftv0i_spec (Guiding center curvature drift)
+
 -GradB drift: gradBDrifti_spec (F13 term 3 in Juno et al 2021)
 -Magnetiziation drift: magDrifti_spec (F13 term 2 in Juno et al 2021)
 -Agyrotropic drift: agyroDrifti_spec (F13 term 5 in Juno et al 2021)

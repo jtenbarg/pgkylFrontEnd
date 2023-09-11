@@ -72,7 +72,6 @@ def computeFPC(paramFile,fileNum,suffix,spec,params):
 	if not (isinstance(params.get('frameXForm'), type(None))):
 		xformVel = params["frameXForm"]
 		[xformVel.append(0) for i in range(3 - len(xformVel))] #Ensure it is a 3-vector
-
 		#E' = E + u x B 
 		E[0] = E[0] + xformVel[1]*B[2] - xformVel[2]*B[1]
 		E[1] = E[1] + xformVel[2]*B[0] - xformVel[0]*B[2]
@@ -100,7 +99,8 @@ def computeFPC(paramFile,fileNum,suffix,spec,params):
 		for i in range(np.prod(NX)):
 			ind = np.unravel_index(i, NX)
 			Bl = []; [Bl.append(B[ix][ind]) for ix in range(3)]
-			rot[ind] = auxFuncs.rotMatrixFieldAligned(np.squeeze(Bl))
+			#rot[ind] = auxFuncs.rotMatrixFieldAligned(np.squeeze(Bl))
+			rot[ind] = auxFuncs.rotMatrixArbitrary(np.squeeze(Bl),[0,0,1])
 		rotate = 1
 
 	#Rotate electric field
@@ -161,6 +161,89 @@ def computeFPCAvg(FPCin, nTau, avgDir):
 		FPCout.append(np.mean(FPCin[winL:winU],axis=0))
 
 	return FPCout
+
+#Initialize polar, (vperp, vguide), grid and bins for polar FPC
+def polarBin(v, bgDir, FPCMatrix):
+
+    dims = np.shape(v)[0]
+    
+    if dims == 1: 
+        avp = [] 
+        nbin = 0
+        polar_index = []
+        avplim = []
+    else:
+        #Setup bins and wavenumbers for perpendicular polar spectra
+        perpind = np.squeeze(np.where(np.arange(dims) != bgDir))
+        nvp = np.array([len(v[d]) for d in range(len(perpind))])
+        vperp = [v[perpind[d]] for d in range(len(perpind))]
+        nvpolar = int(np.floor(np.sqrt( np.sum(((nvp)/2)**2) )))
+        nvx = nvp[0]
+        nvy = nvp[1]
+        
+        nbin = np.zeros(nvpolar) #Number of vx,vy in each polar bins
+        polar_index = np.zeros((nvx, nvy), dtype=int) #Polar index to simplify binning 
+        if nvx == 1 & nvy==1:
+            dvp = 0
+        elif nvx == 1:
+            dvp = vperp[1][1] - vperp[1][0]
+        elif nvy == 1:
+            dvp = vperp[0][1] - vperp[0][0]
+        else:
+            dvp = max(vperp[0][1] - vperp[0][0], vperp[1][1] - vperp[1][0])        
+        avp = dvp/2 + (np.linspace(0, nvpolar, nvpolar))*dvp #vperp grid centers
+        avplim = (np.linspace(0,nvpolar, nvpolar+1))*dvp #Bin limits
+        #Re-written to avoid loops. Necessary for large grids.
+        [vxg, vyg] = np.meshgrid(vperp[1],vperp[0]) #Deal with meshgrid weirdness (so do not have to transpose)
+        vp = np.sqrt(vxg**2 + vyg**2)
+        pn  = np.where(vp >= avplim[nvpolar])
+        polar_index[pn[0], pn[1]] = nvpolar-1  
+        nbin[nvpolar-1] = nbin[nvpolar-1] + len(pn[0])
+        for iv in range(0, nvpolar):
+            pn = np.where((vp < avplim[iv+1]) & (vp >= avplim[iv]))
+            polar_index[pn[0], pn[1]] = iv
+            nbin[iv] = nbin[iv] + len(pn[0])
+        
+        shape = np.shape(FPCMatrix)
+        FPCMatrixPolar = np.zeros((nvpolar, shape[bgDir]))
+        for i in range(0, nvp[0]):
+            for j in range(0, nvp[1]):
+                for k in range(0, shape[bgDir]):
+                    ivperp = polar_index[i,j]
+                    FPCMatrixPolar[ivperp,k] = FPCMatrixPolar[ivperp,k] + 2*np.pi*avp[ivperp]*FPCMatrix[k,i,j]/nbin[ivperp]#newFPCMatrix[i,j,k]
+    
+    return avp, nbin, polar_index, avplim, FPCMatrixPolar
+
+#Convert cartesian FPC to polar FPC and bin.
+def polarBinOld(v, bgDir, polar_index, FPCMatrix):
+    
+    dims = np.shape(v)[0]
+    perpind = np.squeeze(np.where(np.arange(dims) != bgDir))
+    nvp = np.array([len(v[d]) for d in range(len(perpind))])
+    nvpolar = int(np.floor(np.sqrt( np.sum(((nvp)/2)**2) )))
+
+    if dims == 1: #Nothing to do
+        FPCMatrixPolar = [] 
+    elif dims == 2: #Assumes in perp plane
+        FPCMatrixPolar = np.zeros(nvpolar)
+    
+        for i in range(0, nvp[0]):
+            for j in range(0, nvp[1]):
+                if not (i == 0 and j == 0):
+                    ivperp = polar_index[i,j]   
+                    FPCMatrixPolar[ivperp] = FPCMatrixPolar[ivperp] + FPCMatrix[i,j]
+    else:#Bins 3D FPC matrix in Par-Perp1-Perp2 coords into 2D Perp-Par FPC matrix
+        shape = np.shape(FPCMatrix)
+        FPCMatrixPolar = np.zeros((nvpolar, shape[bgDir]))
+
+        
+        for i in range(0, nvp[0]):
+            for j in range(0, nvp[1]):
+                for k in range(0, shape[bgDir]):
+                    ivperp = polar_index[i,j]
+                    FPCMatrixPolar[ivperp,k] = FPCMatrixPolar[ivperp,k] + FPCMatrix[k,i,j]
+        
+    return FPCMatrixPolar
 
 
 

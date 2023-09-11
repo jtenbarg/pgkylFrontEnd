@@ -9,7 +9,7 @@ paramFile = '/Users/jtenbarg/Desktop/runs/gemEddyv43/Data/gem_params.txt'
 fileNum = 18
 
 suffix = '.bp'
-varid = 'jz' #See table of choices in README
+varid = 'tempperppar_elc' #See table of choices in README
 
 params = {} #Initialize dictionary to store plotting and other parameters
 tmp = gkData.gkData(paramFile,fileNum,suffix,varid,params) #Initialize constants for normalization

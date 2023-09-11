@@ -29,6 +29,7 @@ def initPolar(k, bgDir):
             dkp = kperp[0]
         else:
             dkp = max(kperp[0][1], kperp[1][1])
+            
         akp = (np.linspace(1, nkpolar, nkpolar))*dkp #Kperp grid
         akplim = dkp/2 + (np.linspace(0,nkpolar, nkpolar+1))*dkp #Bin limits
         #Re-written to avoid loops. Necessary for large grids.

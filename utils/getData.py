@@ -24,16 +24,17 @@ def getData(self):
     elif self.dimsV==1:
         momvars = ['ux']
         pvars = ['pxx']
-        qvars = ['qxxx']
+        qvarsijk = ['qxxx']; qvarsi = ['qx']
     elif self.dimsV==2:
         momvars = ['ux', 'uy']
         pvars = ['pxx', 'pxy', 'pyy']
-        qvars = ['qxxx','qxxy','qxyy','qyyy']
+        qvarsijk = ['qxxx','qxxy','qxyy','qyyy']; qvarsi = ['qx','qy']
+        
     else:
         momvars = ['ux', 'uy', 'uz']
         pvars = ['pxx', 'pxy', 'pxz', 'pyy', 'pyz', 'pzz']
-        qvars = ['qxxx','qxxy','qxxz','qxyy','qxyz','qxzz','qyyy','qyyz','qyzz','qzzz']
-
+        qvarsijk = ['qxxx','qxxy','qxxz','qxyy','qxyz','qxzz','qyyy','qyyz','qyzz','qzzz']
+        qvarsi = ['qx','qy', 'qz']
     dof = 0
     if self.po > 0:
         nmax = int(min(self.dimsX, np.floor(self.po/2)))
@@ -174,21 +175,26 @@ def getData(self):
             return [[0.]], np.array([0.])
 
     def getGenQ(varid): #Return M3
-        index = pvars.index(varid[0:3])
-        spec = varid[varid.find('_')+1:]
-        filename = self.filenameBase + spec + '_M3ijk_' + str(self.fileNum) + self.suffix
-        if not Path(filename).is_file():
-            print('Warning: Full moment file does not exist. Using M3i instead.')
-            filename = self.filenameBase + spec + '_M3i_' + str(self.fileNum) + self.suffix
-            if not Path(filename).is_file():
-                print('Warning: No heat flux data to read.')
-                coords = 0.
-                data = 0.
-            else:
-               coords, data = genRead(filename, index)
+        try:
+            spec = varid[varid.find('_')+1:]
+            if self.model == 'vm':     
+                filename = self.filenameBase + spec + '_M3ijk_' + str(self.fileNum) + self.suffix
+                if Path(filename).is_file():
+                    index = qvarsijk.index(varid[0:4])
+                if not Path(filename).is_file():
+                    print('Warning: Full moment file does not exist. Using M3i instead.')
+                    filename = self.filenameBase + spec + '_M3i_' + str(self.fileNum) + self.suffix
+                    index = qvarsi.index(varid[0:2])
+                if not Path(filename).is_file():
+                    print('Warning: No heat flux data to read.')
+                    return [[0.]], np.array([0.])
+                else:
+                    return genRead(filename, index)
+        except:
+            print('Moment {0} not found.'.format(varid[0:4]))
+            return [[0.]], np.array([0.])
+              
        
-        coords, data = genRead(filename, index)
-        return coords, data
 
     def getMagB(varid): #Return |B|
         coords, bx = getGenField('bx')
@@ -396,7 +402,27 @@ def getData(self):
         specIndex = self.speciesFileIndex.index(spec)
         data = data*self.mu[specIndex]
         return coords, data
+    
+    def getHeatFlux(varid): #Return Qijk component, optionally in restframe
+        coords, data = getGenQ(varid)
+        spec = varid[varid.find('_')+1:]
       
+        if self.params["restFrame"] and not self.model == 'pkpm':
+            coords, nui = getGenMom('u' + varid[1] + '_' + spec)
+            coords, nuj = getGenMom('u' + varid[2] + '_' + spec)
+            coords, nuk = getGenMom('u' + varid[3] + '_' + spec)
+            self.params["restFrame"] = 0
+            coords, Pij = getPress('p' + varid[1] + varid[2] + '_' + spec)
+            coords, Pjk = getPress('p' + varid[2] + varid[3] + '_' + spec)
+            coords, Pik = getPress('p' + varid[1] + varid[3] + '_' + spec)
+            self.params["restFrame"] = 1
+            coords, n = getDens('n' + '_' + spec)
+            data = data - (nui * Pjk + nuj*Pik + nuk*Pij) / n + 2*nui*nuj*nuk / (n*n)
+
+        specIndex = self.speciesFileIndex.index(spec)
+        data = data*self.mu[specIndex]
+        return coords, data
+
     def getTrP(varid): # Return Tr(P)
         spec = '_' + varid[varid.find('_')+1:]
         if self.model == 'pkpm':
@@ -594,7 +620,7 @@ def getData(self):
         coords, ey = getGenField('ey')
         coords, ez = getGenField('ez')
         
-        
+        mu0 = self.mu0
         if varid[-1] == 'x':
             Poynting = (ey*bz - by*ez)
         elif varid[-1] == 'y': 
@@ -604,7 +630,7 @@ def getData(self):
         else:
             Poynting = np.sqrt((ey*bz - by*ez)**2 + (ez*bx - bz*ex)**2 + (ex*by - bx*ey)**2)
             
-        return coords, Poynting
+        return coords, Poynting/mu0
 
     def getCrossHelicity(varid):
         coords, bx = getGenField('bx')
@@ -937,6 +963,48 @@ def getData(self):
         data = sortDrifts(varid, drift, qnE)
         return coords, data
 
+    def getCurvatureDriftv0(varid): #Guiding center curvature drift energization. 
+        coords, bx = getGenField('bx')
+        coords, by = getGenField('by')
+        coords, bz = getGenField('bz')
+        coords, ex = getGenField('ex')
+        coords, ey = getGenField('ey')
+        coords, ez = getGenField('ez')
+        B = np.sqrt(bx**2 + by**2 + bz**2)
+        bx = bx/B; by = by/B; bz = bz/B
+
+        dims = len(np.shape(bx)) - 1
+
+        dx = np.zeros(dims)
+        for d in range(dims):
+            dx[d] = coords[d][1] - coords[d][0]
+
+        [dbxdx,dbxdy,dbxdz] = auxFuncs.eigthOrderGrad2D(bx,dx)
+        [dbydx,dbydy,dbydz] = auxFuncs.eigthOrderGrad2D(by,dx)
+        [dbzdx,dbzdy,dbzdz] = auxFuncs.eigthOrderGrad2D(bz,dx)
+
+        #kappa = b . (grad b) 
+        kappax = bx*dbxdx + by*dbxdy + bz*dbxdz 
+        kappay = bx*dbydx + by*dbydy + bz*dbydz
+        kappaz = bx*dbzdx + by*dbzdy + bz*dbzdz
+
+        tmp = self.params["restFrame"]
+        self.params["restFrame"] = 0 #Not computed in the rest frame
+        spec = varid[varid.find('_')+1:]
+        coords, Ppar = getPressPar(varid)
+        self.params["restFrame"] = tmp
+        spec = varid[varid.find('_')+1:]
+        specIndex = self.speciesFileIndex.index(spec)
+        q = self.q[specIndex]
+        coords, n = getDens('n_' + spec)
+        drift = np.array([Ppar*(by*kappaz - bz*kappay) / (q*n*B),\
+                     Ppar*(bz*kappax - bx*kappaz) / (q*n*B),\
+                     Ppar*(bx*kappay - by*kappax) / (q*n*B)])
+        qnE = np.array([q*n*ex, q*n*ey, q*n*ez])
+
+        data = sortDrifts(varid, drift, qnE)
+        return coords, data
+
     def getBetatronDrift(varid): #Betatron drift energization. Based on Appendix F of Juno et al 2021
         coords, bx = getGenField('bx')
         coords, by = getGenField('by')
@@ -1171,7 +1239,10 @@ def getData(self):
             coords, data = getExB(varidGlobal)
         elif varidGlobal[0:9] == 'curvature':
             if varidGlobal.find('v2') >= 0:
+
                 coords, data = getCurvatureDriftv2(varidGlobal)
+            elif varidGlobal.find('v0') >= 0:
+                coords, data = getCurvatureDriftv0(varidGlobal)
             else:
                 coords, data = getCurvatureDrift(varidGlobal)
         elif varidGlobal[0:5] == 'gradb':
@@ -1241,6 +1312,8 @@ def getData(self):
                 coords, data = getTempPerp(varidGlobal) #Perpendicular temperature
         else:
             coords, data = getTemp(varidGlobal)
+    elif varidGlobal[0] == 'q':
+        coords, data = getHeatFlux(varidGlobal)
     elif varidGlobal[0:3] == 'mag':
         if varidGlobal[3] == 'e': #|E|
             coords, data = getMagE(varidGlobal)

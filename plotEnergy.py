@@ -9,13 +9,18 @@ from utils import plotParams
 #Tested to handle g0 and g2: VM, 5M, 10M
 #Requires a _params.txt file in your data directory of the form gkeyllOutputBasename_params.txt! See example_params.txt for formatting
 paramsFile = '/Users/jtenbarg/Desktop/runs/gemG0M112x56HiVNoisev2/Data/gem_params.txt';
-#paramsFile = '/Users/jtenbarg/Desktop/runs/HarrisG0Bg0.1/Data/HarrisBg1_params.txt';
-paramsFile = '/Users/jtenbarg/Desktop/Runs/PKPM/OT2DPKPMv1/pkpm_ot_p1-params.txt'
+paramsFile = '/Users/jtenbarg/Desktop/Runs/PKPM/Langmuir2/Data/pkpm_landau_damping_p1-params.txt';
+paramsFile = '/Users/jtenbarg/Desktop/Runs/PKPM/AWk1_1DHi/Data/pkpm_alf_wave_p1-params.txt';
+paramsFile = '/Users/jtenbarg/Desktop/Runs/PKPM/OT2DPKPMv1/Data/pkpm_ot_p1-params.txt';
+paramsFile = '/Users/jtenbarg/Desktop/Runs/PKPM/OT2DVM/Data/ot-g0-jcp-param_params.txt';
+paramsFile = '/Users/jtenbarg/My Drive/PKPM/64x32x64-vAe-0-08/Data/pkpm_gem_p1-params.txt'
+paramsFile = '/Users/jtenbarg/Desktop/Runs/PKPM/AWk1_1DHi2/Data/pkpm_alf_wave_p1-params.txt';
+paramsFile = '/Users/jtenbarg/Desktop/runs/HarrisG0Bg0.1/Data/HarrisBg1_params.txt';
 
 fileNumStart = 0
-fileNumEnd = 75
+fileNumEnd = 24
 fileSkip = 1
-suffix = '.gkyl'
+suffix = '.bp'
 sub0 = 1
 saveFigs = 1
 
@@ -37,7 +42,7 @@ speciesIndexTime = tmp.speciesFileIndex.index(refSpeciesTime)
 #params["axesNorm"] = [tmp.d[speciesIndexAxes], tmp.d[speciesIndexAxes], tmp.vt[speciesIndexAxes], tmp.vt[speciesIndexAxes], tmp.vt[speciesIndexAxes]]
 params["timeNorm"] = tmp.omegaC[speciesIndexTime]
 params["axesLabels"] = ['$x/d_p$', '$y/d_p$', '$z/d_p$']
-params["timeLabel"] = '$/ \Omega_{ci}$'
+params["timeLabel"] = '$\Omega_{ci}$'
 
 params["plotContours"] = 1 #Overplot contours of the following
 params["varidContours"] = 'psi' #Plot contours of this variable
@@ -148,12 +153,13 @@ else:
 
 cl = ['b','r','m','g']
 plt.figure(figsize=(12,8))
-plt.plot(t, dEtot, 'k', t, dB, '--k', t, dE, ':g', linewidth=2)
+plt.plot(t, dEtot, 'k', t, dB, '--k', t, dE, 'g', linewidth=2)
 for s in range(nspec):
     plt.plot(t,dT[s,:],'-.'+cl[s],t,du[s,:],'--'+cl[s],linewidth=2)
+    #plt.plot(t,dT[s,:],'-.r',t,du[s,:],'--b',linewidth=2)
 plt.plot(t,np.zeros(nt),'k')
 plt.legend(['$E_{tot}$','$E_{B}$', '$E_{E}$','$E_{T}$','$E_u$'], frameon=False)
-plt.xlabel('t' + tmp.params["timeLabel"])
+plt.xlabel('$t$' + tmp.params["timeLabel"])
 plt.ylabel(yLabel)
 plt.autoscale(enable=True, axis='both', tight=True)
 if saveFigs:
@@ -165,7 +171,7 @@ plt.show()
 
 plt.figure(figsize=(12,8))
 plt.plot(t,J,'k', linewidth=2)
-plt.xlabel('t' + tmp.params["timeLabel"])
+plt.xlabel('$t$' + tmp.params["timeLabel"])
 plt.ylabel('$J^2$')
 plt.autoscale(enable=True, axis='both', tight=True)
 if saveFigs:
@@ -182,7 +188,7 @@ for s in range(nspec):
     leg.append('$J_{' + tmp.speciesFileIndex[s][0] + '} \cdot E$')
 plt.legend(leg, frameon=False)
 plt.plot(t,np.zeros(nt),'k')
-plt.xlabel('t' + tmp.params["timeLabel"])
+plt.xlabel('$t$' + tmp.params["timeLabel"])
 plt.ylabel('$J\cdot E$')
 plt.autoscale(enable=True, axis='both', tight=True)
 if saveFigs:
@@ -198,7 +204,7 @@ for s in range(nspec):
     leg.append('$E_{T_' + tmp.speciesFileIndex[s][0] + '}$')
 plt.plot(t,np.zeros(nt),'k')
 plt.legend(leg, frameon=False)
-plt.xlabel('t' + tmp.params["timeLabel"])
+plt.xlabel('$t$' + tmp.params["timeLabel"])
 plt.ylabel('$\Delta T_s/T_{0s}$')
 plt.autoscale(enable=True, axis='both', tight=True)
 if saveFigs:
@@ -214,7 +220,7 @@ for s in range(nspec):
     leg.append('$T_' + tmp.speciesFileIndex[s][0] + '$')
 plt.plot(t,np.zeros(nt),'k')
 plt.legend(leg, frameon=False)
-plt.xlabel('t' + tmp.params["timeLabel"])
+plt.xlabel('$t$' + tmp.params["timeLabel"])
 plt.ylabel('$T$')
 plt.autoscale(enable=True, axis='both', tight=True)
 if saveFigs:
