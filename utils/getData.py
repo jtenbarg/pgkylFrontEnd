@@ -5,17 +5,17 @@ from utils import getSlice
 from utils import auxFuncs
 
 from pathlib import Path
-
 def getData(self):
     
     varidGlobal = self.varid
            
     fieldvars = ['ex', 'ey', 'ez', 'bx', 'by', 'bz', 'potE', 'potB']
     dvars = ['n']
-  
+    tracePVars = 0  
+    traceQVars = 0 #For handling M2 and M3i data correctly
     if self.dimsV==0: #For fluid data
         if self.model == '5m':
-            momvars = ['n', 'ux', 'uy', 'uz','pxx']
+            momvars = ['n', 'ux', 'uy', 'uz','p']
         elif self.model == '10m':
             momvars = ['n', 'ux', 'uy', 'uz','pxx', 'pxy', 'pxz', 'pyy', 'pyz', 'pzz']
     elif self.model == 'pkpm':
@@ -147,6 +147,7 @@ def getData(self):
         return coords, m1 / m0
 
     def getGenP(varid): #Return M2
+        nonlocal tracePVars
         try:
             spec = varid[varid.find('_')+1:]
             if self.model == 'vm':
@@ -154,6 +155,7 @@ def getData(self):
                 filename = self.filenameBase + spec + '_M2ij_' + str(self.fileNum) + self.suffix
                 if not Path(filename).is_file():
                     print('Warning: Full moment file does not exist. Using M2 instead.')
+                    tracePVars = 1
                     filename = self.filenameBase + spec + '_M2_' + str(self.fileNum) + self.suffix
                 coords, data = genRead(filename, index)
             elif self.model == '5m' or self.model == '10m':
@@ -175,6 +177,7 @@ def getData(self):
             return [[0.]], np.array([0.])
 
     def getGenQ(varid): #Return M3
+        nonlocal traceQVars
         try:
             spec = varid[varid.find('_')+1:]
             if self.model == 'vm':     
@@ -183,6 +186,7 @@ def getData(self):
                     index = qvarsijk.index(varid[0:4])
                 if not Path(filename).is_file():
                     print('Warning: Full moment file does not exist. Using M3i instead.')
+                    traceQVars = 1
                     filename = self.filenameBase + spec + '_M3i_' + str(self.fileNum) + self.suffix
                     index = qvarsi.index(varid[0:2])
                 if not Path(filename).is_file():
@@ -190,6 +194,12 @@ def getData(self):
                     return [[0.]], np.array([0.])
                 else:
                     return genRead(filename, index)
+            elif self.model == 'pkpm':
+                filename = self.filenameBase + spec + '_pkpm_moms_' + str(self.fileNum) + self.suffix
+                index = moments.index(varid[0:varid.find('_')])
+                coords, data = genRead(filename, index)
+                specIndex = self.speciesFileIndex.index(spec)
+                data = data / self.mu[specIndex]
         except:
             print('Moment {0} not found.'.format(varid[0:4]))
             return [[0.]], np.array([0.])
@@ -385,19 +395,25 @@ def getData(self):
         coords, data = getGenP(varid)
         spec = varid[varid.find('_')+1:]
       
+        if self.model == '5m': 
+            data = data*2. #Convert Epsilon to P_ii
+            
         if self.params["restFrame"] and not self.model == 'pkpm':
-            if self.model == '5m':
+            coords, n = getDens('n' + '_' + spec)
+            if self.model == '5m':           
                 coords, nux = getGenMom('ux_' + spec)
                 coords, nuy = getGenMom('uy_' + spec)
                 coords, nuz = getGenMom('uz_' + spec)
-                coords, n = getDens('n' + '_' + spec)
-                data = data - 0.5*(nux*nux + nuy*nuy + nuz*nuz) / n
-                if varid[1] != 'x' and  varid[2] != 'x':
-                    data = np.zeros(np.shape(n))
+                data = data - (nux*nux + nuy*nuy + nuz*nuz) / n
+                #data = data / 3 #Return scalar p
+            elif tracePVars:                
+                for id in range(self.dimsV):
+                    coords, nui = getGenMom(momvars[id] + '_' + spec)
+                    data = data - (nui*nui) / n    
+                #data = data / self.dimsV #Return scalar p     
             else:
                 coords, nu = getGenMom('u' + varid[1] + '_' + spec)
                 coords, nv = getGenMom('u' + varid[2] + '_' + spec)
-                coords, n = getDens('n' + '_' + spec)
                 data = data - (nu*nv) / n
         specIndex = self.speciesFileIndex.index(spec)
         data = data*self.mu[specIndex]
@@ -406,18 +422,35 @@ def getData(self):
     def getHeatFlux(varid): #Return Qijk component, optionally in restframe
         coords, data = getGenQ(varid)
         spec = varid[varid.find('_')+1:]
-      
+
         if self.params["restFrame"] and not self.model == 'pkpm':
-            coords, nui = getGenMom('u' + varid[1] + '_' + spec)
-            coords, nuj = getGenMom('u' + varid[2] + '_' + spec)
-            coords, nuk = getGenMom('u' + varid[3] + '_' + spec)
-            self.params["restFrame"] = 0
-            coords, Pij = getPress('p' + varid[1] + varid[2] + '_' + spec)
-            coords, Pjk = getPress('p' + varid[2] + varid[3] + '_' + spec)
-            coords, Pik = getPress('p' + varid[1] + varid[3] + '_' + spec)
-            self.params["restFrame"] = 1
-            coords, n = getDens('n' + '_' + spec)
-            data = data - (nui * Pjk + nuj*Pik + nuk*Pij) / n + 2*nui*nuj*nuk / (n*n)
+            if tracePVars:
+                print('Warning: M2ij does not exist. Cannot compute restframe Q!')
+            elif traceQVars:
+                coords, n = getDens('n' + '_' + spec)
+                coords, nuk = getGenMom('u' + varid[1] + '_' + spec)
+                #data = data / 2.
+                dims = self.dimsV
+                ii = ['x', 'y', 'z']
+                self.params["restFrame"] = 0
+                for id in range(dims):
+                    pcomp = ''.join(sorted('p' + ii[id] + varid[1]))
+                    coords, Pik = getPress(pcomp + '_' + spec)
+                    coords, Pii = getPress('p' + ii[id] + ii[id] + '_' + spec)
+                    coords, nui = getGenMom(momvars[id] + '_' + spec)
+                    data = data + 2*(nui*nui)*nuk / (n*n) - 2*nui*Pik / n - nuk*Pii / n  
+                self.params["restFrame"] = 1                 
+            else:
+                coords, n = getDens('n' + '_' + spec)
+                coords, nui = getGenMom('u' + varid[1] + '_' + spec)
+                coords, nuj = getGenMom('u' + varid[2] + '_' + spec)
+                coords, nuk = getGenMom('u' + varid[3] + '_' + spec)
+                self.params["restFrame"] = 0
+                coords, Pij = getPress('p' + varid[1] + varid[2] + '_' + spec)
+                coords, Pjk = getPress('p' + varid[2] + varid[3] + '_' + spec)
+                coords, Pik = getPress('p' + varid[1] + varid[3] + '_' + spec)
+                self.params["restFrame"] = 1  
+                data = data - (nui * Pjk + nuj*Pik + nuk*Pij) / n + 2*nui*nuj*nuk / (n*n)
 
         specIndex = self.speciesFileIndex.index(spec)
         data = data*self.mu[specIndex]
@@ -425,15 +458,30 @@ def getData(self):
 
     def getTrP(varid): # Return Tr(P)
         spec = '_' + varid[varid.find('_')+1:]
+        nonlocal tracePVars
+        if self.model == 'vm':
+            filename = self.filenameBase + spec + '_M2ij_' + str(self.fileNum) + self.suffix
+            if not Path(filename).is_file():
+                tracePVars = 1
+
         if self.model == 'pkpm':
             coords, ppar = getPress('ppar' + spec)
             coords, pperp = getPress('pperp' + spec)
             data = ppar + 2.*pperp
+        if self.model == '5m':
+            coords, data = getPress('p' + spec)     
+        elif tracePVars:
+            coords, data = getPress('pxx' + spec)
         else:
-            coords, pyy = getPress('pyy' + spec)
-            coords, pzz = getPress('pzz' + spec)
-            coords, pxx = getPress('pxx' + spec)
-            data = pxx + pyy + pzz
+            ii = ['yy', 'zz']
+            if self.model == '10m':
+                dims = 3
+            else:
+                dims = self.dimsV
+            coords, data = getPress('pxx' + spec)
+            for id in range(dims-1):
+                coords, pii = getPress('p' + ii[id] + spec)
+                data = data + pii
         return coords, data
 
     def getPressPar(varid): #Return ppar = Pij bi bj
@@ -474,9 +522,7 @@ def getData(self):
         spec = '_' + varid[varid.find('_')+1:]
         coords, trp = getTrP(spec)
         coords, n = getDens('n' + spec)
-        if self.model == '5m':
-            data = (trp / n) * 2 / 3
-        elif self.model == '10m' or self.model == 'pkpm':
+        if self.model == '10m' or self.model == '5m' or self.model == 'pkpm':
             data = (trp / n) / 3
         else:
             data = (trp / n) / self.dimsV

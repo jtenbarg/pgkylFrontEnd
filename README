@@ -26,7 +26,7 @@ Note that case is ignored
 -Species parallel work, Jpar_spec.Epar: workpar_spec
 -Component work, JiEi: worki
 -Species component work, Ji_spec Ei: worki_spec
--Pressure: pij_spec
+-Pressure: pij_spec NOTE: Vlasov data with only M2 data and all 5M data will always return trace pressure
 -Parallel pressure: ppar_spec
 -Perp pressure: pperp_spec
 -Tr(P): trp_spec
@@ -36,7 +36,7 @@ Note that case is ignored
 -Tperp / Tpar: tempperppar_spec
 -Tpar / Tperp: tempparperp_spec
 -Pressure agyrotropy: agyro_spec
--Heat flux: qi_spec for M3i data or qijk_spec for M3ijk data. DO NOTE USE params["restFrame"] = 1 for M3i data!
+-Heat flux: qi_spec for M3i data or qijk_spec for M3ijk data. DO NOTE USE params["restFrame"] = 1 for M3i data if M2ij data does not exist!  
 -Heat flux continued: for PKPM, qpar_spec or qperp_spec
 -Beta: beta_spec
 -Beta par or perp: betapar_spec, betaperp_spec
