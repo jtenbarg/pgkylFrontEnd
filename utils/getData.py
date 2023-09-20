@@ -457,30 +457,29 @@ def getData(self):
         return coords, data
 
     def getTrP(varid): # Return Tr(P)
-        spec = '_' + varid[varid.find('_')+1:]
+        spec =  varid[varid.find('_')+1:]
         nonlocal tracePVars
         if self.model == 'vm':
             filename = self.filenameBase + spec + '_M2ij_' + str(self.fileNum) + self.suffix
             if not Path(filename).is_file():
                 tracePVars = 1
-
         if self.model == 'pkpm':
-            coords, ppar = getPress('ppar' + spec)
-            coords, pperp = getPress('pperp' + spec)
+            coords, ppar = getPress('ppar' + '_' + spec)
+            coords, pperp = getPress('pperp' + '_' + spec)
             data = ppar + 2.*pperp
         if self.model == '5m':
-            coords, data = getPress('p' + spec)     
+            coords, data = getPress('p' + '_' + spec)     
         elif tracePVars:
-            coords, data = getPress('pxx' + spec)
+            coords, data = getPress('pxx' + '_' + spec)
         else:
             ii = ['yy', 'zz']
             if self.model == '10m':
                 dims = 3
             else:
                 dims = self.dimsV
-            coords, data = getPress('pxx' + spec)
+            coords, data = getPress('pxx' + '_' + spec)
             for id in range(dims-1):
-                coords, pii = getPress('p' + ii[id] + spec)
+                coords, pii = getPress('p' + ii[id] + '_' + spec)
                 data = data + pii
         return coords, data
 
