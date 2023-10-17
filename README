@@ -26,7 +26,7 @@ Note that case is ignored
 -Species parallel work, Jpar_spec.Epar: workpar_spec
 -Component work, JiEi: worki
 -Species component work, Ji_spec Ei: worki_spec
--Pressure: pij_spec NOTE: Vlasov data with only M2 data and all 5M data will always return trace pressure
+-Pressure: pij_spec NOTE: Vlasov data with only M2 data and all 5M data will always return trace pressure. For 5M, which is only trace p, use p_spec
 -Parallel pressure: ppar_spec
 -Perp pressure: pperp_spec
 -Tr(P): trp_spec
@@ -86,6 +86,8 @@ var.max = max(var.data)
 var.min = min(var.data)
 var.time = time in code units
 var.mu = Species mass array, order defined by params file
+var.n = Reference density defined in params file
+var.B0 = Reference B0 defined by params file
 var.q = Species charge array
 var.beta = species beta array
 var.vA = species Alfven speed array
