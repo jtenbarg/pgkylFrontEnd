@@ -31,6 +31,7 @@ class gkData:
         self.mu0 = 1.
         self.eps0 = 1.
         self.mu = []
+        self.n = []
         self.q = []
         self.temp = []
         self.beta = []
