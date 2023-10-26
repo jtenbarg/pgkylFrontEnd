@@ -8,8 +8,11 @@ from pathlib import Path
 def getData(self):
     
     varidGlobal = self.varid
-           
-    fieldvars = ['ex', 'ey', 'ez', 'bx', 'by', 'bz', 'potE', 'potB']
+    if self.model == 'vp':
+        fieldvars = ['ph', 'ax', 'ay', 'az']
+    else:
+        fieldvars = ['ex', 'ey', 'ez', 'bx', 'by', 'bz', 'potE', 'potB']
+    
     dvars = ['n']
     tracePVars = 0  
     traceQVars = 0 #For handling M2 and M3i data correctly
@@ -308,7 +311,13 @@ def getData(self):
                 phi[0:, iy] = phi[0:, iy-1] + ey[0:, iy]*dx[1]
         return coords, -phi
    
-    
+    def getEVP(varidGlobal): #Return E for VP data
+        coords, phi = getGenField('phi')
+        for d in range(dims):
+            dx[d] = coords[d][1] - coords[d][0]
+        E = auxFuncs.genGradient(-phi,dx)
+        return coords, E
+
     def getEpar(varid): #Return E.B
         coords, ex = getGenField('ex')
         coords, ey = getGenField('ey')
@@ -428,9 +437,9 @@ def getData(self):
                 print('Warning: M2ij does not exist. Cannot compute restframe Q!')
             elif traceQVars:
                 coords, n = getDens('n' + '_' + spec)
+                dims = self.dimsV
                 coords, nuk = getGenMom('u' + varid[1] + '_' + spec)
                 #data = data / 2.
-                dims = self.dimsV
                 ii = ['x', 'y', 'z']
                 self.params["restFrame"] = 0
                 for id in range(dims):
@@ -1307,6 +1316,8 @@ def getData(self):
     elif varidGlobal[0] == 'e':
         if varidGlobal[1:4] == 'par':
             coords, data = getEpar(varidGlobal)
+        elif self.model == 'vp':
+            coords, data = getEVP(varidGlobal)
         else:
             coords, data = getGenField(varidGlobal)
     elif varidGlobal[0:3] == 'div':
@@ -1321,7 +1332,10 @@ def getData(self):
     elif varidGlobal[0:3] == 'psi': #2D flux function
         coords, data = getPsi(varidGlobal)
     elif varidGlobal[0:3] == 'phi': #2D potential function
-        coords, data = getPhi(varidGlobal)
+        if self.model == 'vp':
+            coords, data = getGenField(varidGlobal)
+        else:
+            coords, data = getPhi(varidGlobal)
     elif varidGlobal[0:6] == 'stream': #2D stream function
         coords, data = getStream(varidGlobal)
     elif varidGlobal[0] == 'p': #pressure
