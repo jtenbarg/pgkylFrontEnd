@@ -46,7 +46,7 @@ def getData(self):
     
     def genRead(filename,index):
         zs = getSlice.preSlice(self,filename)
-        if self.model == 'vm' or self.model == 'pkpm':
+        if self.model == 'vm' or self.model == 'pkpm' or self.model == 'vp':
             comp = str(index*dof) + ':' + str((index+1)*dof)
             polyOrder = self.po
             basis = self.basis
@@ -102,7 +102,7 @@ def getData(self):
 
     def getDens(varid): #Return M0 = n
         spec = varid[varid.find('_')+1:]
-        if self.model == 'vm':
+        if self.model == 'vm' or self.model == 'vp':
             index = dvars.index(varid[0])
             filename = self.filenameBase + spec + '_M0_' + str(self.fileNum) + self.suffix
             coords, data = genRead(filename, index)
@@ -124,7 +124,7 @@ def getData(self):
         try:
             index = momvars.index(varid[0:2])
             spec = varid[varid.find('_')+1:]
-            if self.model == 'vm':
+            if self.model == 'vm' or self.model == 'vp':
                 filename = self.filenameBase + spec + '_M1i_' + str(self.fileNum) + self.suffix
                 coords, data = genRead(filename, index)
             elif self.model == '5m' or self.model == '10m':
@@ -153,7 +153,7 @@ def getData(self):
         nonlocal tracePVars
         try:
             spec = varid[varid.find('_')+1:]
-            if self.model == 'vm':
+            if self.model == 'vm' or self.model == 'vp':
                 index = pvars.index(varid[0:3])
                 filename = self.filenameBase + spec + '_M2ij_' + str(self.fileNum) + self.suffix
                 if not Path(filename).is_file():
@@ -183,7 +183,7 @@ def getData(self):
         nonlocal traceQVars
         try:
             spec = varid[varid.find('_')+1:]
-            if self.model == 'vm':     
+            if self.model == 'vm' or self.model == 'vp':     
                 filename = self.filenameBase + spec + '_M3ijk_' + str(self.fileNum) + self.suffix
                 if Path(filename).is_file():
                     index = qvarsijk.index(varid[0:4])
@@ -314,7 +314,7 @@ def getData(self):
     def getEVP(varidGlobal): #Return Ei for VP data
         coords, phi = getGenField('phi')
         dx = np.zeros(len(coords))
-        for d in range(dims):
+        for d in range(len(coords)):
             dx[d] = coords[d][1] - coords[d][0]
         E = auxFuncs.genGradient(-phi,dx)
         suf = ['x', 'y', 'z']
@@ -389,7 +389,7 @@ def getData(self):
             coords, j = getJ('j' + comp)
             data = j*e
         else: #Full J.E
-            if self.model == 'vm':
+            if self.model == 'vm' or self.model == 'vp':
                 idRange = self.dimsV
             else:
                 idRange = 3
@@ -471,7 +471,7 @@ def getData(self):
     def getTrP(varid): # Return Tr(P)
         spec =  varid[varid.find('_')+1:]
         nonlocal tracePVars
-        if self.model == 'vm':
+        if self.model == 'vm' or self.model == 'vp':
             filename = self.filenameBase + spec + '_M2ij_' + str(self.fileNum) + self.suffix
             if not Path(filename).is_file():
                 tracePVars = 1
