@@ -311,12 +311,15 @@ def getData(self):
                 phi[0:, iy] = phi[0:, iy-1] + ey[0:, iy]*dx[1]
         return coords, -phi
    
-    def getEVP(varidGlobal): #Return E for VP data
+    def getEVP(varidGlobal): #Return Ei for VP data
         coords, phi = getGenField('phi')
+        dx = np.zeros(len(coords))
         for d in range(dims):
             dx[d] = coords[d][1] - coords[d][0]
         E = auxFuncs.genGradient(-phi,dx)
-        return coords, E
+        suf = ['x', 'y', 'z']
+
+        return coords, E[suf.index(varidGlobal[1])]
 
     def getEpar(varid): #Return E.B
         coords, ex = getGenField('ex')
