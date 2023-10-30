@@ -1,5 +1,5 @@
-eps0,	mu0,	B0,	dimsX,	dimsV(=0 for fluid),	polyOrder,	basis,	model(vm,vp,5m,10m,pkpm)
-1.,	1.,	0.1,	2,	3,			2,		ms,	vm
+eps0,	mu0,	B0,	dimsX,	dimsV(=0 for fluid),	polyOrder,	basis,	model(vm,vp,5m,10m,pkpm), filesuffix (.bp, .gkyl)
+1.,	1.,	0.1,	2,	3,			2,		ms,	vm,			.bp
 species,	mass,	charge,	temperature,	density
 elc,		1.,	-1.,	0.00083333,	1.
 ion,		25.,	1,	0.0041667,	1.

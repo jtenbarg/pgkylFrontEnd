@@ -60,7 +60,6 @@ def gkPlot(self,show=1,save=0):
                             self.params["numContours"], colors = self.params["colorContours"], linewidths=0.75)
         if self.params["axisEqual"]:
             plt.gca().set_aspect('equal', 'box')
-
    
         
     if self.params["displayTime"] & (self.suffix != '.gkyl'):

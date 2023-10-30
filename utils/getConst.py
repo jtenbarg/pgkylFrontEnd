@@ -19,6 +19,7 @@ def setConst(self):
                 self.po = int(row[5].strip())
                 self.basis = row[6].strip()
                 self.model = row[7].strip()
+                self.suffix = row[8].strip()
             elif line_count > 2:
                 self.speciesFileIndex.append(row[0].strip())
                 self.mu.append(float(row[1].strip()))
@@ -26,7 +27,6 @@ def setConst(self):
                 self.temp.append(float(row[3].strip()))
                 self.n.append(float(row[4].strip()))
             line_count += 1
-
     self.mu0 = mu0
     self.eps0 = eps0
     self.c = 1 / np.sqrt(mu0*eps0)

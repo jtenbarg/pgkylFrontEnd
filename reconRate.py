@@ -14,12 +14,11 @@ paramsFile = '/Users/jtenbarg/Desktop/runs/HarrisG0Bg0.1/Data/HarrisBg1_params.t
 fileNumStart = 0
 fileNumEnd = 24
 fileSkip = 1
-suffix = '.bp'
 varid = 'psi' #See table of choices in README
-saveFigs = 0
+saveFigs = 1
 
 params = {} #Initialize dictionary to store plotting and other parameters
-tmp = gkData.gkData(paramsFile,fileNumStart,suffix,varid,params) #Initialize constants for normalization
+tmp = gkData.gkData(paramsFile,fileNumStart,varid,params) #Initialize constants for normalization
 
 #below limits [z0, z1, z2,...] normalized to params["axesNorm"]
 params["lowerLimits"] = [-1.e6, -1.e0, -1.e6, -1.e6, -1.e6, -1e6] 
@@ -67,7 +66,7 @@ nt = len(ts)
 
 psiX = np.zeros(nt); psiO = np.zeros(nt); t = np.zeros(nt)
 for it in range(nt):
-	var = gkData.gkData(paramsFile,ts[it],suffix,varid,params).compactRead()
+	var = gkData.gkData(paramsFile,ts[it],varid,params).compactRead()
 	t[it] = var.time
 	saddles = auxFuncs.findSaddles(var.data); nSaddles = len(saddles)
 	if nSaddles == 0:

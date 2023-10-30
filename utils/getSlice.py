@@ -1,5 +1,6 @@
 import numpy as np
-import adios
+import adios #Comment out for adios2
+#import adios2 as adios #Uncomment for adios2
 
 def _is_gkyl(file_name : str, offset : int) -> bool:
   magic = np.fromfile(file_name, dtype=np.dtype('b'), count=5, offset=offset)
@@ -15,6 +16,11 @@ def preSlice(self, filename):
         lower = np.atleast_1d(adios.attr(fh, 'lowerBounds').value)
         upper = np.atleast_1d(adios.attr(fh, 'upperBounds').value)
         cells = np.atleast_1d(adios.attr(fh, 'numCells').value)
+        #For adios 2, comment out above block and uncomment this block
+        #fh = adios.open(filename, 'rra')
+        #lower = np.atleast_1d(fh.read_attribute('lowerBounds'))
+        #upper = np.atleast_1d(fh.read_attribute('upperBounds'))
+        #cells = np.atleast_1d(fh.read_attribute('numCells'))
         fh.close()
       
     elif self.suffix == '.gkyl':

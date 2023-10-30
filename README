@@ -86,7 +86,7 @@ var.max = max(var.data)
 var.min = min(var.data)
 var.time = time in code units
 var.mu = Species mass array, order defined by params file
-var.n = Reference density defined in params file
+var.n = Reference species density defined in params file
 var.B0 = Reference B0 defined by params file
 var.q = Species charge array
 var.beta = species beta array
@@ -124,7 +124,7 @@ D = 2*A*B + C**2 will return a new gkData object D.
 Field-particle correaltion (FPC) usage
 from utils import FPC as FPC to import FPC diagnostics
 
-[coords, FPC, t] = FPC.computeFPC(paramFile,ts,suffix,spec,params) 
+[coords, FPC, t] = FPC.computeFPC(paramFile,ts,spec,params) 
 returns the coords read in, the FPC, and the time (in code units) of the FPC
 FPC = -0.5*q*v^2*dfdv*E
 This works for arbitrary dimensionality
@@ -144,7 +144,7 @@ If placed in a time loop, one can do a time average easily using FPC.computeFPCA
 fpc  = []
 for it in range(nt):
         print('Working on frame {0} of {1}'.format(it+1,nt))
-        [coords, fpcTmp, t[it]] = FPC.computeFPC(paramFile,ts[it],suffix,spec,params)
+        [coords, fpcTmp, t[it]] = FPC.computeFPC(paramFile,ts[it],spec,params)
         fpc.append(fpcTmp)
 if nTau > 0:
 	fpc = FPC.computeFPCAvg(fpc, nTau, avgDir)

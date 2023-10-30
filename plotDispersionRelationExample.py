@@ -9,11 +9,10 @@ from utils import plotParams
 paramsFile = '/Users/jtenbarg/Desktop/Runs/Linear/10m-1-waves_params.txt';
 
 fileNum = 0
-suffix = ''
 varid = 'dispersion'
 
 params = {} #Initialize dictionary to store plotting and other parameters
-tmp = gkData.gkData(paramsFile,fileNum,suffix,varid,params) #Initialize constants for normalization
+tmp = gkData.gkData(paramsFile,fileNum,varid,params) #Initialize constants for normalization
 
 #Define species to normalize and lengths/times 
 refSpeciesAxes = 'ion'
@@ -27,7 +26,7 @@ params["timeLabel"] = '$\Omega_{ci}^{-1}$'
 
 #End input#####################################################
 
-var = gkData.gkData(paramsFile,fileNum,suffix,varid,params).compactRead()
+var = gkData.gkData(paramsFile,fileNum,varid,params).compactRead()
 k = var.coords[0][:]*var.params["axesNorm"][0] #Normalize k
 om = var.data/var.params["timeNorm"] #Normalize omega
 

@@ -11,19 +11,19 @@ def between(val, x):
 
 	return i
 
-def computeFPC(paramFile,fileNum,suffix,spec,params):
+def computeFPC(paramFile,fileNum,spec,params):
 	rotate = 0
 	dirs = ['x', 'y', 'z']
 	E = []
 	B = []
 	
 	for i in range(3):
-		E.append(np.atleast_1d(getattr(gkData.gkData(paramFile,fileNum,suffix,'e' + dirs[i],params).compactRead(), 'data')))
-		B.append(np.atleast_1d(getattr(gkData.gkData(paramFile,fileNum,suffix,'b' + dirs[i],params).compactRead(), 'data')))
-	fTmp = gkData.gkData(paramFile,fileNum,suffix,'dist_'+spec,params).compactRead()
+		E.append(np.atleast_1d(getattr(gkData.gkData(paramFile,fileNum,'e' + dirs[i],params).compactRead(), 'data')))
+		B.append(np.atleast_1d(getattr(gkData.gkData(paramFile,fileNum,'b' + dirs[i],params).compactRead(), 'data')))
+	fTmp = gkData.gkData(paramFile,fileNum,'dist_'+spec,params).compactRead()
 	if not (isinstance(params.get('useDeltaF'), type(None))):
 		if params["useDeltaF"]:
-			f0 = gkData.gkData(paramFile,0,suffix,'dist_'+spec,params).compactRead()
+			f0 = gkData.gkData(paramFile,0,'dist_'+spec,params).compactRead()
 			fTmp = fTmp - f0
 
 	f = fTmp.data
@@ -47,8 +47,8 @@ def computeFPC(paramFile,fileNum,suffix,spec,params):
 	vCoords = coords[dimsX:dimsF]
 
 	if False:
-		dens = gkData.gkData(paramFile,fileNum,suffix,'n_'+spec,params).compactRead()
-		temp = gkData.gkData(paramFile,fileNum,suffix,'temp_'+spec,params).compactRead()
+		dens = gkData.gkData(paramFile,fileNum,'n_'+spec,params).compactRead()
+		temp = gkData.gkData(paramFile,fileNum,'temp_'+spec,params).compactRead()
 		print(NV)
 		vth = np.sqrt(temp.data/temp.mu[specIndex])
 		fMax = np.empty_like(f)
@@ -84,7 +84,7 @@ def computeFPC(paramFile,fileNum,suffix,spec,params):
 		driftType = params["driftAlign"]
 		drift = []
 		for i in range(3):
-			drift.append(np.atleast_1d(getattr(gkData.gkData(paramFile,fileNum,suffix,driftType + dirs[i] + '_' + spec,params).compactRead(), 'data')))
+			drift.append(np.atleast_1d(getattr(gkData.gkData(paramFile,fileNum,driftType + dirs[i] + '_' + spec,params).compactRead(), 'data')))
 		rot = np.zeros(NX + (3,3))
 		for i in range(np.prod(NX)):
 			ind = np.unravel_index(i, NX)

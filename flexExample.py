@@ -8,10 +8,9 @@ from utils import gkPlot as plt
 paramFile = '/Users/jtenbarg/Desktop/runs/gemEddyv43/Data/gem_params.txt' 
 
 fileNum = 15
-suffix = '.bp'
 varid = 'ux_elc' #See table of choices in README
 params = {} #Initialize dictionary to store plotting and other parameters
-tmp = gkData.gkData(paramFile,fileNum,suffix,varid,params) #Initialize constants for normalization
+tmp = gkData.gkData(paramFile,fileNum,varid,params) #Initialize constants for normalization
 
 params["lowerLimits"] = [-1.e6, -1.e6, -1.e6, -1.e6, -1.e6]
 params["upperLimits"] = [1.e6, 1.e6, 1.e6, 1.e6, 1.e6, 1.e6]
@@ -46,10 +45,10 @@ params["div0"] = 0 #Divide data by data(t=0)
 
 #End input##################################################
 #Let's compute something 
-ux = gkData.gkData(paramFile,fileNum,suffix,'ux_elc',params)
+ux = gkData.gkData(paramFile,fileNum,'ux_elc',params)
 ux.readData()
 
-bx = gkData.gkData(paramFile,fileNum,suffix,'bx',params)
+bx = gkData.gkData(paramFile,fileNum,'bx',params)
 bx.readData()
 
 varGK = ux**2*(ux + bx)/ bx #Do some math

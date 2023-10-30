@@ -20,11 +20,10 @@ paramFile = '/Users/jtenbarg/Desktop/Runs/SULI2022/ot_g0_5M_256pi_cfl1/ot_g0_5M-
 paramFile = '/Users/jtenbarg/Downloads/field-data/pkpm_ot_p1-params.txt'
 
 fileNum = 100
-suffix = '.gkyl'
 bgDir = 2 #Guide field direction: 0, 1, or 2 = x, y, or z. If 2D data, this direciton must not be in the 2D plane.
 
 params = {} #Initialize dictionary to store plotting and other parameters
-tmp = gkData.gkData(paramFile,fileNum,suffix,'bx',params) #Initialize constants for normalization
+tmp = gkData.gkData(paramFile,fileNum,'bx',params) #Initialize constants for normalization
 
 #below limits [z0, z1, z2,...] normalized to params["axesNorm"]
 params["lowerLimits"] = [-1.e6, -1.e6, -1.e6, -1.e6, -1.e6, -1e6] 
@@ -43,7 +42,7 @@ params["timeNorm"] = tmp.omegaC[speciesIndexTime]
 
 #End input##########################################
 
-bx = gkData.gkData(paramFile,fileNum,suffix,'bx',params).compactRead() #Tmp read to get grid info
+bx = gkData.gkData(paramFile,fileNum,'bx',params).compactRead() #Tmp read to get grid info
 
 dataShape = np.shape(bx.data)
 dims = len(dataShape)
@@ -54,9 +53,9 @@ k = [np.fft.fftfreq(dataShape[d], (bx.coords[d][1] - bx.coords[d][0])/(2*np.pi*b
 akp, nbin, polar_index, akplim, ebinCorr = polarFFT.initPolar(k, bgDir) #Initialize polar wavenumber bins
 
 #Read and take FFT of data
-bx = gkData.gkData(paramFile,fileNum,suffix,'bx',params).compactRead()
-by = gkData.gkData(paramFile,fileNum,suffix,'by',params).compactRead()
-bz = gkData.gkData(paramFile,fileNum,suffix,'bz',params).compactRead()
+bx = gkData.gkData(paramFile,fileNum,'bx',params).compactRead()
+by = gkData.gkData(paramFile,fileNum,'by',params).compactRead()
+bz = gkData.gkData(paramFile,fileNum,'bz',params).compactRead()
 
 bxFFT = np.fft.fftn(bx.data) * np.sqrt(1/volumeFFT)
 byFFT = np.fft.fftn(by.data) * np.sqrt(1/volumeFFT)

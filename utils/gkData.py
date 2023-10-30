@@ -6,10 +6,9 @@ from utils import getDispersionRelation
 from copy import copy, deepcopy
 
 class gkData:
-    def __init__(self,paramFile,fileNum,suffix,varid,params):
+    def __init__(self,paramFile,fileNum,varid,params):
         self.paramFile = paramFile
         self.fileNum = fileNum
-        self.suffix = suffix
         self.varid = varid
         self.params = params.copy()
 
@@ -87,7 +86,7 @@ class gkData:
         getConst.setConst(self)
 
     def __copy__(self):
-        return type(self)(self.paramFile,self.fileNum,self.suffix,self.varid,self.params)
+        return type(self)(self.paramFile,self.fileNum,self.varid,self.params)
     
     def __deepcopy__(self, memo): # memo is a dict of id's to copies
         id_self = id(self)        # memoization avoids unnecesary recursion
@@ -96,7 +95,6 @@ class gkData:
             _copy = type(self)(
                 deepcopy(self.paramFile, memo), 
                 deepcopy(self.fileNum, memo),
-                deepcopy(self.suffix, memo),
                 deepcopy(self.varid, memo),
                 deepcopy(self.params, memo))
             memo[id_self] = _copy 

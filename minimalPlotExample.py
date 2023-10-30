@@ -8,12 +8,11 @@ from utils import gkPlot as plt
 paramFile = '/Users/jtenbarg/Desktop/runs/gemEddyv43/Data/gem_params.txt' 
 
 fileNum = 18
-suffix = '.bp'
 varid = 'jz' #See table of choices in README
 
 #End input#########################################
 
-var = gkData.gkData(paramFile,fileNum,suffix,varid,{}).compactRead()
+var = gkData.gkData(paramFile,fileNum,varid,{}).compactRead()
 
 plt.gkPlot(var, show=1, save=0) #show and save are optional. Default show=1, save=0. Saves to var.filenameBase directory
 

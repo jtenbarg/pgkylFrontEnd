@@ -16,7 +16,6 @@ paramFile  = '/Users/jtenbarg/Desktop/runs/ECDIKap2D3s3/Data2/ECDI_params.txt'
 fileNumStart = 0
 fileNumEnd = 30
 fileSkip = 1
-suffix = '.bp'
 varid = ''
 spec = 'elc'
 nTau = 3 #Frames over which to average. 0 or 1 does no averaging. Note centered ==> nTau must be odd and >= 3 
@@ -30,7 +29,7 @@ saveFigs = 0
 showFigs = 1
 
 params = {} #Initialize dictionary to store plotting and other parameters
-tmp = gkData.gkData(paramFile,fileNumStart,suffix,varid,params) #Initialize constants for normalization
+tmp = gkData.gkData(paramFile,fileNumStart,varid,params) #Initialize constants for normalization
 
 #below limits [z0, z1, z2,...] normalized to params["axesNorm"]
 params["lowerLimits"] = [0e0,  -1.e6, -1.e6, -1.e6, -1.e6, -1e6] 
@@ -59,21 +58,21 @@ ts = np.arange(fileNumStart, fileNumEnd+1, fileSkip)
 nt = len(ts); t = np.zeros(nt); fpc  = []; work = []
 for it in range(nt):
 	print('Working on frame {0} of {1}'.format(it+1,nt))
-	workTmp = getattr(gkData.gkData(paramFile,ts[it],suffix,'work_'+spec,params).compactRead(), 'data')
+	workTmp = getattr(gkData.gkData(paramFile,ts[it],'work_'+spec,params).compactRead(), 'data')
 	if frameXFormTimeDep:
-		ux = getattr(gkData.gkData(paramFile,ts[it],suffix,'ux_'+spec,params).compactRead(), 'data')
-		uy = getattr(gkData.gkData(paramFile,ts[it],suffix,'uy_'+spec,params).compactRead(), 'data')
-		uz = getattr(gkData.gkData(paramFile,ts[it],suffix,'uz_'+spec,params).compactRead(), 'data')
+		ux = getattr(gkData.gkData(paramFile,ts[it],'ux_'+spec,params).compactRead(), 'data')
+		uy = getattr(gkData.gkData(paramFile,ts[it],'uy_'+spec,params).compactRead(), 'data')
+		uz = getattr(gkData.gkData(paramFile,ts[it],'uz_'+spec,params).compactRead(), 'data')
 		params["frameXForm"] = [ux,uy,uz] #Transform frames, including electric field. 
 		workTmp = np.zeros_like(workTmp)
 
-	[coords, fpcTmp, t[it]] = FPC.computeFPC(paramFile,ts[it],suffix,spec,params)
+	[coords, fpcTmp, t[it]] = FPC.computeFPC(paramFile,ts[it],spec,params)
 	fpc.append(fpcTmp)
 	work.append(workTmp)
 
 	if it==0:
 		#Setup x and v grids, dx, and dv
-		E = np.atleast_1d(getattr(gkData.gkData(paramFile,ts[it],suffix,'ex',params).compactRead(), 'data'))
+		E = np.atleast_1d(getattr(gkData.gkData(paramFile,ts[it],'ex',params).compactRead(), 'data'))
 		NX = np.shape(E)
 		NV = np.shape(fpcTmp[0])
 		if len(E) > 1:
