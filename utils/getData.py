@@ -79,7 +79,7 @@ def getData(self):
             print('Warning, gkyl0 data files do not contain time date. Time set to fileNum')
             self.time = self.fileNum
         else:
-            self.time = data0.meta['time']
+            self.time = data0.meta['time'] #Comment out for adios2
             if self.time is None:
                 print('Warning, data file does not contain time date. Time set to fileNum')
                 self.time = self.fileNum
@@ -321,6 +321,26 @@ def getData(self):
 
         return coords, E[suf.index(varidGlobal[1])]
 
+    def getBVP(varidGlobal): #Return Bi for VP data
+        coords, ax = getGenField('ax')
+        coords, ay = getGenField('ay')
+        coords, az = getGenField('az')
+        dx = np.zeros(len(coords))
+        for d in range(len(coords)):
+            dx[d] = coords[d][1] - coords[d][0]
+        [daxdx, daxdy, daxdz] = auxFuncs.genGradient(ax,dx)
+        [daydx, daydy, daydz] = auxFuncs.genGradient(ay,dx)
+        [dazdx, dazdy, dazdz] = auxFuncs.genGradient(az,dx)
+        B = np.zeros(3 + np.shape(daxdx))
+        print(np.shape(B))
+        B[0] = daydz - dazdy
+        B[1] = dazdx - daxdz
+        B[2] = daxdy - daydx
+
+        suf = ['x', 'y', 'z']
+
+        return coords, B[suf.index(varidGlobal[1])]
+
     def getEpar(varid): #Return E.B
         coords, ex = getGenField('ex')
         coords, ey = getGenField('ey')
@@ -436,11 +456,12 @@ def getData(self):
         spec = varid[varid.find('_')+1:]
 
         if self.params["restFrame"] and not self.model == 'pkpm':
-            if tracePVars:
+            coords, P = getPress('p' + varid[1] + varid[1] + '_' + spec)
+            dims = self.dimsV
+            if tracePVars and not dims==1:
                 print('Warning: M2ij does not exist. Cannot compute restframe Q!')
             elif traceQVars:
                 coords, n = getDens('n' + '_' + spec)
-                dims = self.dimsV
                 coords, nuk = getGenMom('u' + varid[1] + '_' + spec)
                 #data = data / 2.
                 ii = ['x', 'y', 'z']
@@ -1315,7 +1336,10 @@ def getData(self):
     elif varidGlobal[0:4] == 'beta':
         coords, data = getBeta(varidGlobal)
     elif varidGlobal[0] == 'b': #magnetic fields
-        coords, data = getGenField(varidGlobal)
+        if self.model == 'vp':
+            coords, data = getBVP(varidGlobal)
+        else:
+            coords, data = getGenField(varidGlobal)
     elif varidGlobal[0] == 'e':
         if varidGlobal[1:4] == 'par':
             coords, data = getEpar(varidGlobal)
