@@ -156,6 +156,27 @@ avgDir = 0 #Backwards (-1), forward (1), or centered (0). Endpoints treated with
 For a complete example, see the included FPCExample_0xNv.py.
 
 
+###################################################
+Entropy usage
+from utils import entropy
+
+[coords, entropy, t] = entropy.getEntropy(paramFile,fileNum,spec,params,type=0)
+returns the coords read in, the type of entropy density chosen, and the time (in code units)
+
+Options for the FPC
+spec = species name as in params file
+type = the type of entropy 
+0=conventional entropy -Int f ln f dv
+1=relatitive entropy  - Int f ln (f / fMaxwelian) dv
+2=position space entropy - n ln n 
+3=velocity space entropy -Int f ln (f / n) dv
+Note that type0 = type2 + type3
+
+params["absVal"] = applies absolute value to the argument of the ln function. Sometimes necessary for non-positive values of f.
+
+
+
+
 
 
 

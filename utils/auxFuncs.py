@@ -1,4 +1,5 @@
 import numpy as np
+from utils import gkData
 
 #Handle arbitrary dimensionality for numpy gradient method
 def genGradient(var, dx):
@@ -152,3 +153,33 @@ def findSaddles(mat : np.ndarray) -> list:
 
 
     return maxRowMinCol + minRowMaxCol
+
+#Returns an equivalent Maxwellian, fMax = n / (2 pi vth^2)^(0.5*dimsV) * exp(-(v-u)^2 / 2 vth^2)
+def equivMax(f, spec):
+    coords = f.coords
+    dimsX = f.dimsX
+    dimsV = f.dimsV
+    NV = np.shape(f.data);  dimsF = len(NV)
+    VInd = list(range(dimsX,dimsF))
+    specIndex = f.speciesFileIndex.index(spec)
+    dens = gkData.gkData(f.paramFile,f.fileNum,'n_'+spec,f.params).compactRead()
+    temp = gkData.gkData(f.paramFile,f.fileNum,'temp_'+spec,f.params).compactRead()
+    dirs = ['x', 'y', 'z']
+    u = []      
+    for i in range(dimsV):
+        u.append(np.atleast_1d(getattr(gkData.gkData(f.paramFile,f.fileNum,'u' + dirs[i]+'_'+spec,f.params).compactRead(), 'data')))
+
+    vth = np.sqrt(temp.data/temp.mu[specIndex])
+    fMax = np.empty_like(f.data)
+    expo = 0.5*dimsV
+    nRange = np.prod(NV)
+    for i in range(nRange):
+        ind = np.unravel_index(i, NV)
+        v2 = 0.
+        for iv in VInd:
+            v2 += (coords[iv][ind[iv]] - u[iv-dimsX][ind[0:dimsX]])**2.
+    
+        vth2 = vth[ind[0:dimsX]]**2.
+        fMax[ind] = (dens.data[ind[0:dimsX]] / (2*np.pi*vth2)**expo) * np.exp(-v2/(2*vth2))
+
+    return fMax
