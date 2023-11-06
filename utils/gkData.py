@@ -2,6 +2,7 @@ import numpy as np
 import postgkyl as pg
 from utils import getConst
 from utils import getData
+from utils import auxFuncs
 from utils import getDispersionRelation
 from copy import copy, deepcopy
 
@@ -199,14 +200,14 @@ class gkData:
         
         if axis is None:
             dims = len(np.shape(np.squeeze(newData.data)))
-            newData.data = np.squeeze(np.sum(newData.data))
+            newData.data = np.squeeze(auxFuncs.integrate(newData.data))
             dx = 1.
             for d in reversed(range(dims)):
                 dx = dx*newData.dx[d]
                 del newData.coords[d]
                 del newData.params["axesNorm"][d]
         else:
-            newData.data = np.squeeze(np.sum(newData.data, axis=axis))
+            newData.data = np.squeeze(auxFuncs.integrate(newData.data, axis=axis))
             if isinstance(axis, int):
                 dx = newData.dx[axis]
                 del newData.coords[axis]
