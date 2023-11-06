@@ -183,3 +183,19 @@ def equivMax(f, spec):
         fMax[ind] = (dens.data[ind[0:dimsX]] / (2*np.pi*vth2)**expo) * np.exp(-v2/(2*vth2))
 
     return fMax
+
+def integrate(f, axis=None):
+    if axis is None:
+        axis = tuple(np.arange(0,len(np.shape(f))))
+
+    tot = f
+    if type(axis) is int:
+        tot = np.trapz(tot, axis=axis)
+    else:
+        for d in reversed(axis):
+            tot = np.trapz(tot, axis=d)
+
+
+    return tot
+
+
