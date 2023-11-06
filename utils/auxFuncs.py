@@ -1,4 +1,5 @@
 import numpy as np
+import scipy as sp
 from utils import gkData
 
 #Handle arbitrary dimensionality for numpy gradient method
@@ -184,17 +185,17 @@ def equivMax(f, spec):
 
     return fMax
 
+#Generalized Simpson's rule for arbistrary dimensions.
 def integrate(f, axis=None):
     if axis is None:
         axis = tuple(np.arange(0,len(np.shape(f))))
 
     tot = f
     if type(axis) is int:
-        tot = np.trapz(tot, axis=axis)
+        tot = sp.integrate.simps(tot, axis=axis)
     else:
         for d in reversed(axis):
-            tot = np.trapz(tot, axis=d)
-
+            tot = sp.integrate.simps(tot, axis=d)
 
     return tot
 
