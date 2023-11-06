@@ -18,22 +18,18 @@ def getEntropy(paramFile,fileNum,spec,params,type=0):
 	if type == 0: #Conventional entropy
 		coef = f.data
 		fKernel = f.data
-		integrate = 1
 	elif type == 1: #Relative entropy
 		coef = f.data
 		fMax = auxFuncs.equivMax(f, spec)
 		fKernel = f.data / fMax
-		integrate = 1
 	elif type == 2: #Position space entropy
 		n = gkData.gkData(paramFile,fileNum,'n_'+spec,params).compactRead()
 		coef = n.data
 		fKernel = n.data
-		integrate = 0
 	elif type == 3: #Velocity space entropy
 		coef = f.data
 		n = gkData.gkData(paramFile,fileNum,'n_'+spec,params).compactRead()
 		fKernel = f.data / np.transpose([n.data,]*1)
-		integrate = 1
 
 	if absVal:
 		s = -coef * np.log(np.abs(fKernel))
