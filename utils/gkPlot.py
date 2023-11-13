@@ -53,7 +53,7 @@ def gkPlot(self,show=1,save=0):
         #Add optional contours
         if self.params["plotContours"] & (not self.varid[0:4] == 'dist'):
             saveFilename = saveFilename + self.params["varidContours"] + '_'
-            cont = gkData.gkData(self.paramFile,self.fileNum,self.suffix,self.params["varidContours"],self.params).compactRead()
+            cont = gkData.gkData(self.paramFile,self.fileNum,self.params["varidContours"],self.params).compactRead()
             #cont.readData()
             plt.rcParams['contour.negative_linestyle'] = 'solid'
             plt.contour(self.coords[0]/axNorm[0], self.coords[1]/axNorm[1], np.transpose(cont.data),\

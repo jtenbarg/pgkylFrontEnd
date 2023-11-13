@@ -3,6 +3,11 @@ import scipy as sp
 import postgkyl as pg
 from utils import getSlice
 from utils import auxFuncs
+try:
+    import adios 
+except ModuleNotFoundError:
+    adios2 = 1
+
 
 from pathlib import Path
 def getData(self):
@@ -79,11 +84,13 @@ def getData(self):
             print('Warning, gkyl0 data files do not contain time date. Time set to fileNum')
             self.time = self.fileNum
         else:
-            self.time = data0.meta['time'] #Comment out for adios2
+            if adios2:
+                self.time = data0.ctx['time']
+            else:
+                self.time = data0.meta['time'] 
             if self.time is None:
                 print('Warning, data file does not contain time date. Time set to fileNum')
                 self.time = self.fileNum
-
         return coords, data
 
     def getDist(varid): #Returns particle distribution
