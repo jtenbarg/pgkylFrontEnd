@@ -1,9 +1,9 @@
 import numpy as np
 try:
-    import adios #Comment out for adios2
+    import adios 
 except ModuleNotFoundError:
     adios2 = 1
-    import adios2 as adios #Uncomment for adios1
+    import adios2 as adios 
 
 def _is_gkyl(file_name : str, offset : int) -> bool:
   magic = np.fromfile(file_name, dtype=np.dtype('b'), count=5, offset=offset)
@@ -15,19 +15,12 @@ def _is_gkyl(file_name : str, offset : int) -> bool:
 def preSlice(self, filename):
     #Create temporary grid from adios attributes
     if self.suffix == '.bp':
-        #For adios1, uncomment this block
-        #fh = adios.file(filename)
-        #lower = np.atleast_1d(adios.attr(fh, 'lowerBounds').value)
-        #upper = np.atleast_1d(adios.attr(fh, 'upperBounds').value)
-        #cells = np.atleast_1d(adios.attr(fh, 'numCells').value)
-        #adios1
+        
         if adios2:
-            #For adios2, uncomment this block
             fh = adios.open(filename, 'rra')
             lower = np.atleast_1d(fh.read_attribute('lowerBounds'))
             upper = np.atleast_1d(fh.read_attribute('upperBounds'))
             cells = np.atleast_1d(fh.read_attribute('numCells'))
-            #adios2
         else:
             fh = adios.file(filename)
             lower = np.atleast_1d(adios.attr(fh, 'lowerBounds').value)
