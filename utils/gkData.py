@@ -200,22 +200,28 @@ class gkData:
         
         if axis is None:
             dims = len(np.shape(np.squeeze(newData.data)))
-            newData.data = np.squeeze(auxFuncs.integrate(newData.data, dx=newData.dx))
+            #newData.data = np.squeeze(auxFuncs.integrate(newData.data, dx=newData.dx))
+            newData.data = np.squeeze(np.sum(newData.data))
             dx = 1.
             for d in reversed(range(dims)):
+                dx = dx*newData.dx[d]
                 del newData.coords[d]
                 del newData.params["axesNorm"][d]
         else:
-            newData.data = np.squeeze(auxFuncs.integrate(newData.data, dx=newData.dx, axis=axis))
+            #newData.data = np.squeeze(auxFuncs.integrate(newData.data, dx=newData.dx, axis=axis))
+            newData.data = np.squeeze(np.sum(newData.data, axis=axis))
             if isinstance(axis, int):
+                dx = newData.dx[axis]
                 del newData.coords[axis]
                 del newData.params["axesNorm"][axis]
             else:
                 axisSort = sorted(axis, reverse=True)
+                dx = 1.
                 for ax in axisSort:
+                    dx *= newData.dx[ax]
                     del newData.coords[ax]
                     del newData.params["axesNorm"][ax]
-                    
+        newData.data = newData.data*dx              
         newData.setMaxMin()
         return newData
        
