@@ -36,7 +36,8 @@ def getEntropy(paramFile,fileNum,spec,params,type=0):
 	else:
 		s = -coef * np.log(fKernel)
 	if np.shape(fKernel) == NV:
-		s = auxFuncs.integrate(s, dx=f.dx, axis=tuple(VInd))#*dV
+		#s = auxFuncs.integrate(s, dx=f.dx, axis=tuple(VInd))
+		s = np.sum(s, axis=tuple(VInd))*np.prod([f.dx[d] for d in VInd])
 		
 
 	return coords[0:dimsX], s, t
