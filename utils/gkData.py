@@ -136,7 +136,7 @@ class gkData:
                 self.data = np.log10(self.data)
                 if self.params["logThresh"] != 0:
                     ii = np.where(self.data < np.max(self.data) + self.params["logThresh"])
-                    self.data[ii] =  self.params["logThresh"]
+                    self.data[ii] =  np.max(self.data) + self.params["logThresh"]
           
             self.setMaxMin()
 
