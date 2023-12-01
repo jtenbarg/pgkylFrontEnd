@@ -26,9 +26,13 @@ def getData(self):
             momvars = ['n', 'ux', 'uy', 'uz','p']
         elif self.model == '10m':
             momvars = ['n', 'ux', 'uy', 'uz','pxx', 'pxy', 'pxz', 'pyy', 'pyz', 'pzz']
+    #elif self.model == 'pkpm':
+    #   moments = ['n','ppar','pperp','qpar','qperp','rparperp','rperpperp']
+    #   momvars = ['ux','uy','uz']
     elif self.model == 'pkpm':
-        moments = ['n','ppar','pperp','qpar','qperp','rparperp','rperpperp']
-        momvars = ['ux','uy','uz']
+        momvars = ['n', 'ux', 'uy', 'uz','pxx', 'pxy', 'pxz', 'pyy', 'pyz', 'pzz']
+        moments = ['n','M1','ppar','pperp','qpar','qperp','rparperp','rperpperp']
+        auxvars = ['ux','uy','uz','Tperp/m','m/Tperp','1/rho div(p_parallel b_hat)', '1/rho p_perp div(b)', 'bb : grad(u)']
     elif self.dimsV==1:
         momvars = ['ux']
         pvars = ['pxx']
@@ -140,8 +144,8 @@ def getData(self):
                 specIndex = self.speciesFileIndex.index(spec)
                 data = data / self.mu[specIndex]
             elif self.model == 'pkpm':
-                filename = self.filenameBase + 'fluid_' + spec + '_' + str(self.fileNum) + self.suffix
-                coords, data = genRead(filename, index)
+                filename = self.filenameBase + spec + '_pkpm_fluid_' + str(self.fileNum) + self.suffix
+                coords, data = genRead(filename, index) 
                 specIndex = self.speciesFileIndex.index(spec)
                 data = data / self.mu[specIndex]
             return coords, data
@@ -175,8 +179,12 @@ def getData(self):
                 specIndex = self.speciesFileIndex.index(spec)
                 data = data / self.mu[specIndex]
             elif self.model == 'pkpm':
-                filename = self.filenameBase + spec + '_pkpm_moms_' + str(self.fileNum) + self.suffix
-                index = moments.index(varid[0:varid.find('_')])
+                if varid[1] == 'p': #ppar or pperp
+                    filename = self.filenameBase + spec + '_pkpm_moms_' + str(self.fileNum) + self.suffix
+                    index = moments.index(varid[0:varid.find('_')])
+                else:
+                    filename = self.filenameBase + spec + '_pkpm_fluid_' + str(self.fileNum) + self.suffix
+                    index = momvars.index(varid[0:varid.find('_')])
                 coords, data = genRead(filename, index)
                 specIndex = self.speciesFileIndex.index(spec)
                 data = data / self.mu[specIndex]
@@ -210,6 +218,7 @@ def getData(self):
                 coords, data = genRead(filename, index)
                 specIndex = self.speciesFileIndex.index(spec)
                 data = data / self.mu[specIndex]
+                return coords, data
         except:
             print('Moment {0} not found.'.format(varid[0:4]))
             return [[0.]], np.array([0.])
@@ -325,7 +334,6 @@ def getData(self):
             dx[d] = coords[d][1] - coords[d][0]
         E = auxFuncs.genGradient(-phi,dx)
         suf = ['x', 'y', 'z']
-
         return coords, E[suf.index(varidGlobal[1])]
 
     def getBVP(varidGlobal): #Return Bi for VP data
@@ -437,7 +445,7 @@ def getData(self):
         if self.model == '5m': 
             data = data*2. #Convert Epsilon to P_ii
             
-        if self.params["restFrame"] and not self.model == 'pkpm':
+        if self.params["restFrame"] and not (self.model == 'pkpm' and varid[1] == 'p'):
             coords, n = getDens('n' + '_' + spec)
             if self.model == '5m':           
                 coords, nux = getGenMom('ux_' + spec)
@@ -507,7 +515,7 @@ def getData(self):
             coords, ppar = getPress('ppar' + '_' + spec)
             coords, pperp = getPress('pperp' + '_' + spec)
             data = ppar + 2.*pperp
-        if self.model == '5m':
+        elif self.model == '5m':
             coords, data = getPress('p' + '_' + spec)     
         elif tracePVars:
             coords, data = getPress('pxx' + '_' + spec)
@@ -521,6 +529,7 @@ def getData(self):
             for id in range(dims-1):
                 coords, pii = getPress('p' + ii[id] + '_' + spec)
                 data = data + pii
+
         return coords, data
 
     def getPressPar(varid): #Return ppar = Pij bi bj
@@ -1451,6 +1460,7 @@ def getData(self):
   
     self.coords = coords
     self.data = data
-
+    
     getSlice.postSlice(self)
+   
    
