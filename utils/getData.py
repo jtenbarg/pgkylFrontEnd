@@ -64,6 +64,7 @@ def getData(self):
                 data0 = pg.GData(filename, z0=zs[0], z1=zs[1], z2=zs[2], z3=zs[3], z4=zs[4], z5=zs[5])
                 if self.model == 'pkpm':
                     basis = 'pkpmhyb'
+                    polyOrder = 1
             
             if not (isinstance(self.params.get('polyOrderOverride'), type(None))):
                 proj = pg.GInterpModal(data0, polyOrder, basis, self.params["polyOrderOverride"])
