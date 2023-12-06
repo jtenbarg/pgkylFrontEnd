@@ -127,6 +127,11 @@ from utils import FPC as FPC to import FPC diagnostics
 [coords, FPC, t] = FPC.computeFPC(paramFile,ts,spec,params) 
 returns the coords read in, the FPC, and the time (in code units) of the FPC
 FPC = -0.5*q*v^2*dfdv*E
+
+[coords, FPC, t] = FPC.computeFPCPKPM(paramFile,ts,spec,params) 
+returns the coords read in, the kinetic pressure work term, and the time (in code units) of the FPC
+FPC = 0.5*m_s vpar^2 (bb:grad u) d (vpar f) / d vpar
+
 This works for arbitrary dimensionality
 
 

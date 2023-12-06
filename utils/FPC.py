@@ -161,14 +161,14 @@ def computeFPCPKPM(paramFile,fileNum,spec,params):
 	du_dx_weight = np.zeros(NV)
 	vf = np.zeros(NV)
 	for i in range(0, NV[-1]):
-		du_dx_weight[..., i] =  bb_gradu.data[...]*coords[-1][i]*coords[-1][i]
-		vf[..., i] = f[..., i]*coords[-1][i]
+		du_dx_weight[..., i] =  bb_gradu.data[...]*coords[-1][i]*coords[-1][i] #vpar^2 bb grad u
+		vf[..., i] = f[..., i]*coords[-1][i] # vpar f
 	du_dx_weight = du_dx_weight * PreFac
 
+	#fpc = 0.5*m_s vpar^2 (bb:grad u) d (vpar f) / d vpar
 	fpc = du_dx_weight*np.gradient(vf, dx[-1], edge_order=2, axis=-1)
 	
 	return coords, fpc, t
-
 
 
 def computeFPCAvg(FPCin, nTau, avgDir):
