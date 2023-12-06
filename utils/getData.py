@@ -32,7 +32,7 @@ def getData(self):
     elif self.model == 'pkpm':
         momvars = ['n', 'ux', 'uy', 'uz','pxx', 'pxy', 'pxz', 'pyy', 'pyz', 'pzz']
         moments = ['n','M1','ppar','pperp','qpar','qperp','rparperp','rperpperp']
-        auxvars = ['ux','uy','uz','Tperp/m','m/Tperp','1/rho div(p_parallel b_hat)', '1/rho p_perp div(b)', 'bb : grad(u)']
+        auxvars = ['ux','uy','uz','Tperp/m','m/Tperp','1/rho div(p_parallel b_hat)', '1/rho p_perp div(b)', 'bb_gradu']
     elif self.dimsV==1:
         momvars = ['ux']
         pvars = ['pxx']
@@ -227,7 +227,17 @@ def getData(self):
             print('Moment {0} not found.'.format(varid[0:4]))
             return [[0.]], np.array([0.])
               
-       
+    def getBBgradu(varid): #Return bb:grad(u) for the PKPM model
+
+        try:
+            if self.model == 'pkpm':
+                spec = varid[varid.find('_')+1:]
+                filename = self.filenameBase + spec + '_pkpm_vars_' + str(self.fileNum) + self.suffix                
+                               
+                return genRead(filename, 7)
+        except:
+            print('bb:grad(u) not found.')
+            return [[0.]], np.array([0.])
 
     def getMagB(varid): #Return |B|
         coords, bx = getGenField('bx')
@@ -1353,6 +1363,8 @@ def getData(self):
             coords, data = getAgyrotropicDrift(varidGlobal)
         elif varidGlobal[0:4] == 'beta':
             coords, data = getBetatronDrift(varidGlobal)
+    elif varidGlobal[0:7] == 'bbgradu':
+        coords, data = getBBgradu(varidGlobal)
     elif varidGlobal[0:4] == 'beta':
         coords, data = getBeta(varidGlobal)
     elif varidGlobal[0] == 'b': #magnetic fields
