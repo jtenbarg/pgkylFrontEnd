@@ -11,6 +11,37 @@ def between(val, x):
 
 	return i
 
+def computeFPCPKPM(paramFile,fileNum,spec,params):
+	bb_gradu = gkData.gkData(paramFile,fileNum,'bbgradu_' + spec,params).compactRead()
+
+	fTmp = gkData.gkData(paramFile,fileNum,'dist0_'+spec,params).compactRead()
+
+	if not (isinstance(params.get('useDeltaF'), type(None))):
+		if params["useDeltaF"]:
+			f0 = gkData.gkData(paramFile,0,'dist0_'+spec,params).compactRead()
+			fTmp = fTmp - f0
+
+	f = fTmp.data
+	coords = fTmp.coords
+	dx = fTmp.dx
+	t = fTmp.time
+	specIndex = fTmp.speciesFileIndex.index(spec)
+	PreFac =  0.5*fTmp.mu[specIndex]
+	del fTmp
+	NV = np.shape(f)
+
+	du_dx_weight = np.zeros(NV)
+	vf = np.zeros(NV)
+	for i in range(0, NV[-1]):
+		du_dx_weight[..., i] =  bb_gradu.data[...]*coords[-1][i]*coords[-1][i]
+		vf[..., i] = f[..., i]*coords[-1][i]
+	du_dx_weight = du_dx_weight * PreFac
+
+	fpc = du_dx_weight*np.gradient(vf, dx[-1], edge_order=2, axis=-1)
+	
+	return coords, fpc, t
+
+
 def computeFPC(paramFile,fileNum,spec,params):
 	rotate = 0
 	dirs = ['x', 'y', 'z']
