@@ -26,6 +26,8 @@ def setConst(self):
                 self.q.append(float(row[2].strip()))
                 self.temp.append(float(row[3].strip()))
                 self.n.append(float(row[4].strip()))
+                if len(row) > 5:
+                    self.model_spec.append(row[5].strip())
             line_count += 1
     self.mu0 = mu0
     self.eps0 = eps0
@@ -36,7 +38,7 @@ def setConst(self):
     self.omegaC = np.divide(np.absolute(self.q)*self.B0, self.mu)
     self.d = np.divide(self.c, self.omegaP)
     self.debye = np.divide(self.vt, self.omegaP) / np.sqrt(2.)
-
+    
     if self.B0 != 0.:
         self.beta = 2.*mu0*np.multiply(self.n,self.temp) / (self.B0*self.B0 )
         self.rho = np.divide(self.vt, self.omegaC)

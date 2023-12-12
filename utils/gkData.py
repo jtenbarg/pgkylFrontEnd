@@ -15,6 +15,7 @@ class gkData:
 
         self.basis = ''
         self.model = ''
+        self.model_spec = []
         self.dimsX = 1
         self.dimsV = 0
         self.dx = []
@@ -118,6 +119,9 @@ class gkData:
         if self.varid == 'dispersion':
             self.coords, self.data = getDispersionRelation.getData(self.filenameBase+'frequencies.bp')
         else:
+            if len(self.model_spec) > 0 and self.varid.find('_') > 0:
+                spec = self.varid[self.varid.find('_')+1:]
+                self.model = self.model_spec[self.speciesFileIndex.index(spec)]
             getData.getData(self)
             self.data = np.squeeze(self.data)
             
@@ -137,7 +141,7 @@ class gkData:
                 if self.params["logThresh"] != 0:
                     ii = np.where(self.data < np.max(self.data) + self.params["logThresh"])
                     self.data[ii] =  np.max(self.data) + self.params["logThresh"]
-          
+
             self.setMaxMin()
 
     def compactRead(self):
