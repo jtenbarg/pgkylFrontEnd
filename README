@@ -26,7 +26,7 @@ Note that case is ignored
 -Species parallel work, Jpar_spec.Epar: workpar_spec
 -Component work, JiEi: worki
 -Species component work, Ji_spec Ei: worki_spec
--Pressure: pij_spec NOTE: Vlasov data with only M2 data and all 5M data will always return trace pressure / dimV. For 5M, always use p_spec
+-Pressure: pij_spec NOTE: Vlasov data with only M2 data and all 5M data will always return trace pressure / dimV. For 5M data, p_spec is preferred, but pii_spec will return the same value.
 -Parallel pressure: ppar_spec
 -Perp pressure: pperp_spec
 -Tr(P): trp_spec

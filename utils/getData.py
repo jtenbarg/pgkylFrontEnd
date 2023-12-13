@@ -453,20 +453,32 @@ def getData(self):
         return coords, data
     
     def getPress(varid): #Return Pij component, optionally in restframe
-        coords, data = getGenP(varid)
         spec = varid[varid.find('_')+1:]
+        FiveMFlag = 0
+        if self.model == '5m':
+            if varid.find('_') > 1:
+                if varid[1] == varid[2]:
+                    print('Warning: 5M data only contains scalar pressure. Returning p.')
+                    coords, data = getGenP('p_' + spec)
+                else:
+                    print('Warning: 5M data only contains scalar pressure. Returning zeros.')
+                    coords, data = getGenP('p_' + spec)
+                    data = np.zeros_like(data)
+                    FiveMFlag = 1
+            else:
+                coords, data = getGenP(varid)
       
         if self.model == '5m': 
             data = data*2. #Convert Epsilon to P_ii
-            
+
         if self.params["restFrame"] and not (self.model == 'pkpm' and varid[1] == 'p'):
             coords, n = getDens('n' + '_' + spec)
-            if self.model == '5m':           
-                coords, nux = getGenMom('ux_' + spec)
-                coords, nuy = getGenMom('uy_' + spec)
-                coords, nuz = getGenMom('uz_' + spec)
-                data = data - (nux*nux + nuy*nuy + nuz*nuz) / n
-                
+            if self.model == '5m':
+                if not FiveMFlag:           
+                    coords, nux = getGenMom('ux_' + spec)
+                    coords, nuy = getGenMom('uy_' + spec)
+                    coords, nuz = getGenMom('uz_' + spec)
+                    data = data - (nux*nux + nuy*nuy + nuz*nuz) / n
             elif tracePVars:                
                 for id in range(self.dimsV):
                     coords, nui = getGenMom(momvars[id] + '_' + spec)
