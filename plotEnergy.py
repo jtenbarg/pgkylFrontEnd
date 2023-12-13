@@ -8,24 +8,25 @@ from utils import plotParams
 #This file computes the change in energies from the moment and fields files.
 #Tested to handle g0 and g2: VM, 5M, 10M
 #Requires a _params.txt file in your data directory of the form gkeyllOutputBasename_params.txt! See example_params.txt for formatting
-paramsFile = '/Users/jtenbarg/Desktop/runs/gemG0M112x56HiVNoisev2/Data/gem_params.txt';
-paramsFile = '/Users/jtenbarg/Desktop/Runs/PKPM/Langmuir2/Data/pkpm_landau_damping_p1-params.txt';
-paramsFile = '/Users/jtenbarg/Desktop/Runs/PKPM/AWk1_1DHi/Data/pkpm_alf_wave_p1-params.txt';
-paramsFile = '/Users/jtenbarg/Desktop/Runs/PKPM/OT2DPKPMv1/Data/pkpm_ot_p1-params.txt';
-paramsFile = '/Users/jtenbarg/Desktop/Runs/PKPM/OT2DVM/Data/ot-g0-jcp-param_params.txt';
-paramsFile = '/Users/jtenbarg/My Drive/PKPM/64x32x64-vAe-0-08/Data/pkpm_gem_p1-params.txt'
-paramsFile = '/Users/jtenbarg/Desktop/Runs/PKPM/AWk1_1DHi2/Data/pkpm_alf_wave_p1-params.txt';
-paramsFile = '/Users/jtenbarg/Desktop/runs/HarrisG0Bg0.1/Data/HarrisBg1_params.txt';
-
+paramFile = '/Users/jtenbarg/Desktop/runs/gemG0M112x56HiVNoisev2/Data/gem_params.txt';
+paramFile = '/Users/jtenbarg/Desktop/Runs/PKPM/Langmuir2/Data/pkpm_landau_damping_p1-params.txt';
+paramFile = '/Users/jtenbarg/Desktop/Runs/PKPM/AWk1_1DHi/Data/pkpm_alf_wave_p1-params.txt';
+paramFile = '/Users/jtenbarg/Desktop/Runs/PKPM/OT2DPKPMv1/Data/pkpm_ot_p1-params.txt';
+paramFile = '/Users/jtenbarg/Desktop/Runs/PKPM/OT2DVM/Data/ot-g0-jcp-param_params.txt';
+paramFile = '/Users/jtenbarg/My Drive/PKPM/64x32x64-vAe-0-08/Data/pkpm_gem_p1-params.txt'
+paramFile = '/Users/jtenbarg/Desktop/Runs/PKPM/AWk1_1DHi2/Data/pkpm_alf_wave_p1-params.txt';
+paramFile = '/Users/jtenbarg/Desktop/runs/HarrisG0Bg0.1/Data/HarrisBg1_params.txt';
+paramFile = '/Users/jtenbarg/Desktop/Runs/ColbyTurbulence/PKPM/Data/pkpm_2d_turb_p2-params.txt'
+paramFile = '/Users/jtenbarg/Downloads/Av/10m_par_firehose_A_v_0.9_1.0_params.txt'
 fileNumStart = 0
-fileNumEnd = 24
+fileNumEnd = 100
 fileSkip = 1
 sub0 = 1
 saveFigs = 1
 
 varid = ''
 params = {} #Initialize dictionary to store plotting and other parameters
-tmp = gkData.gkData(paramsFile,fileNumStart,varid,params) #Initialize constants for normalization
+tmp = gkData.gkData(paramFile,fileNumStart,varid,params) #Initialize constants for normalization
 
 #below limits [z0, z1, z2,...] normalized to params["axesNorm"]
 params["lowerLimits"] = [-1.e6, -1.e6, -1.e6, -1.e6, -1.e6, -1e6] 
@@ -41,7 +42,7 @@ speciesIndexTime = tmp.speciesFileIndex.index(refSpeciesTime)
 #params["axesNorm"] = [tmp.d[speciesIndexAxes], tmp.d[speciesIndexAxes], tmp.vt[speciesIndexAxes], tmp.vt[speciesIndexAxes], tmp.vt[speciesIndexAxes]]
 params["timeNorm"] = tmp.omegaC[speciesIndexTime]
 params["axesLabels"] = ['$x/d_p$', '$y/d_p$', '$z/d_p$']
-params["timeLabel"] = '$\Omega_{ci}$'
+params["timeLabel"] = '$\Omega_{cp}$'
 
 params["plotContours"] = 1 #Overplot contours of the following
 params["varidContours"] = 'psi' #Plot contours of this variable
@@ -73,23 +74,23 @@ t = np.zeros(nt)
 params["restFrame"] = 0
 for i in range(nt):
     
-    ex = gkData.gkData(paramsFile,ts[i],'ex',params).compactRead()
-    ey = gkData.gkData(paramsFile,ts[i],'ey',params).compactRead()
-    ez = gkData.gkData(paramsFile,ts[i],'ez',params).compactRead()
+    ex = gkData.gkData(paramFile,ts[i],'ex',params).compactRead()
+    ey = gkData.gkData(paramFile,ts[i],'ey',params).compactRead()
+    ez = gkData.gkData(paramFile,ts[i],'ez',params).compactRead()
     t[i] = ex.time*ex.params["timeNorm"]
     
-    bx = gkData.gkData(paramsFile,ts[i],'bx',params).compactRead()
-    by = gkData.gkData(paramsFile,ts[i],'by',params).compactRead()
-    bz = gkData.gkData(paramsFile,ts[i],'bz',params).compactRead()
+    bx = gkData.gkData(paramFile,ts[i],'bx',params).compactRead()
+    by = gkData.gkData(paramFile,ts[i],'by',params).compactRead()
+    bz = gkData.gkData(paramFile,ts[i],'bz',params).compactRead()
     E2 = (ex**2 + ey**2 + ez**2)*ex.eps0 / 2.
     B2 = (bx**2 + by**2 + bz**2)/ 2. / bx.mu0
     E[i] = getattr(E2.integrate(), 'data')
     B[i] = getattr(B2.integrate(), 'data')
 
 
-    jx = gkData.gkData(paramsFile,ts[i],'jx',params).compactRead()
-    jy = gkData.gkData(paramsFile,ts[i],'jy',params).compactRead()
-    jz = gkData.gkData(paramsFile,ts[i],'jz',params).compactRead()
+    jx = gkData.gkData(paramFile,ts[i],'jx',params).compactRead()
+    jy = gkData.gkData(paramFile,ts[i],'jy',params).compactRead()
+    jz = gkData.gkData(paramFile,ts[i],'jz',params).compactRead()
     J2 = jx**2 + jy**2 + jz**2
     JE = jx*ex + jy*ey + jz*ez
     
@@ -99,28 +100,28 @@ for i in range(nt):
     
     for s in range(nspec):
         varid = 'n_' + tmp.speciesFileIndex[s]
-        n = gkData.gkData(paramsFile,ts[i],varid,params).compactRead()
-        if n.model == '5m':
-            varid = 'pxx_' + tmp.speciesFileIndex[s]
-            tmp =  gkData.gkData(paramsFile,ts[i],varid,params).compactRead()
-        else:
-            varid = 'trp_' + tmp.speciesFileIndex[s]
-            tmp = (gkData.gkData(paramsFile,ts[i],varid,params).compactRead())/2.
+        n = gkData.gkData(paramFile,ts[i],varid,params).compactRead()
+        #if n.model == '5m':
+        #    varid = 'pxx_' + tmp.speciesFileIndex[s]
+        #    tmp =  gkData.gkData(paramFile,ts[i],varid,params).compactRead()
+        #else:
+        varid = 'trp_' + tmp.speciesFileIndex[s]
+        tmp = (gkData.gkData(paramFile,ts[i],varid,params).compactRead())/2.
                 
         P[s,i] = getattr(tmp.integrate(), 'data')   
         varid = 'ux_' + tmp.speciesFileIndex[s]
-        ux = gkData.gkData(paramsFile,ts[i],varid,params).compactRead()
+        ux = gkData.gkData(paramFile,ts[i],varid,params).compactRead()
         varid = 'uy_' + tmp.speciesFileIndex[s]
-        uy = gkData.gkData(paramsFile,ts[i],varid,params).compactRead()
+        uy = gkData.gkData(paramFile,ts[i],varid,params).compactRead()
         varid = 'uz_' + tmp.speciesFileIndex[s]
-        uz = gkData.gkData(paramsFile,ts[i],varid,params).compactRead()
+        uz = gkData.gkData(paramFile,ts[i],varid,params).compactRead()
         tmp = n*(ux**2 + uy**2 + uz**2)*n.mu[s]/2
         u[s,i] = getattr(tmp.integrate(), 'data')
         
         JE = n*(ux*ex+uy*ey+uz*ez)
         Work[s+1, i] =  n.q[s]*getattr(JE.integrate(), 'data')
 
-#t=ts
+t=2*ts
 Etot = np.sum(P,axis=0) + E + B
 if n.model == 'pkpm':
     Etot = Etot + np.sum(u,axis=0)

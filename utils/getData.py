@@ -178,7 +178,7 @@ def getData(self):
                 coords, data = genRead(filename, index)
             elif self.model == '5m' or self.model == '10m':
                 filename = self.filenameBase + spec + '_' + str(self.fileNum) + self.suffix
-                index = momvars.index(varid[0:3])
+                index = momvars.index(varid[0:varid.find('_')])
                 coords, data = genRead(filename, index)
                 specIndex = self.speciesFileIndex.index(spec)
                 data = data / self.mu[specIndex]
@@ -648,7 +648,7 @@ def getData(self):
         self.params["restFrame"] = 1 #Must be computed in the rest frame
         coords, B = getMagB(varid)
         spec = varid[varid.find('_')+1:]
-        coords, n = getDens('n' + spec)
+        coords, n = getDens('n_' + spec)
         if varid.find('par') > -1:
             coords, T = getTempPar(varid)
         elif varid.find('perp') > -1:
