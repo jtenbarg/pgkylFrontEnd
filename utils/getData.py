@@ -467,6 +467,8 @@ def getData(self):
                     FiveMFlag = 1
             else:
                 coords, data = getGenP(varid)
+        else:
+            coords, data = getGenP(varid)
       
         if self.model == '5m': 
             data = data*2. #Convert Epsilon to P_ii
