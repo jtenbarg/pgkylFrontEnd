@@ -227,6 +227,21 @@ def getData(self):
             print('Moment {0} not found.'.format(varid[0:4]))
             return [[0.]], np.array([0.])
               
+    def getGenR(varid): #Return M4 for PKPM
+        try:
+            spec = varid[varid.find('_')+1:]
+            if self.model == 'pkpm':
+                filename = self.filenameBase + spec + '_pkpm_moms_' + str(self.fileNum) + self.suffix
+                index = moments.index(varid[0:varid.find('_')])
+
+                coords, data = genRead(filename, index)
+                specIndex = self.speciesFileIndex.index(spec)
+                data = data / self.mu[specIndex]
+                return coords, data
+        except:
+            print('Moment {0} not found.'.format(varid[0:4]))
+            return [[0.]], np.array([0.])
+
     def getBBgradu(varid): #Return bb:grad(u) for the PKPM model
 
         try:
@@ -1482,6 +1497,8 @@ def getData(self):
             coords, data = getTemp(varidGlobal)
     elif varidGlobal[0] == 'q':
         coords, data = getHeatFlux(varidGlobal)
+    elif varidGlobal[0:2] == 'rp':
+        coords, data = getGenR(varidGlobal)
     elif varidGlobal[0:3] == 'mag':
         if varidGlobal[3] == 'e': #|E|
             coords, data = getMagE(varidGlobal)
