@@ -52,7 +52,7 @@ def getData(self):
         nmax = int(min(self.dimsX, np.floor(self.po/2)))
         for i in range(nmax+1):
             dof = dof + int(2**(self.dimsX-i)*sp.special.comb(self.dimsX,i)*sp.special.comb(self.po-i,i))
-    
+    #Will need to switch to Pascal case soon
     def genRead(filename,index):
         zs = getSlice.preSlice(self,filename)
         if self.model == 'vm' or self.model == 'pkpm' or self.model == 'vp':
@@ -67,16 +67,28 @@ def getData(self):
                         basis = 'ms'
                     else:
                         basis = 'pkpmhyb'
-                    
+                   
             
+            proj = True
             if not (isinstance(self.params.get('polyOrderOverride'), type(None))):
-                proj = pg.GInterpModal(data0, polyOrder, basis, self.params["polyOrderOverride"])
+                if self.params.get('polyOrderOverride') == 0:
+                    coords = data0.getGrid()
+                    data = data0.getValues()
+                    pow = self.dimsX
+                    if varidGlobal[0:4] == 'dist':
+                        pow = pow + self.dimsV
+                    data = data[...,index*dof] / (np.sqrt(2)**pow)
+                    proj = False
+                else:
+                    proj = pg.GInterpModal(data0, polyOrder, basis, self.params["polyOrderOverride"])
             else:
                 proj = pg.GInterpModal(data0, polyOrder, basis)
-            if self.suffix == '.gkyl':
-                coords, data = proj.interpolate(index)
-            else:
-                coords, data = proj.interpolate()
+            if proj:
+                if self.suffix == '.gkyl':
+                    coords, data = proj.interpolate(index)
+                else:
+                    coords, data = proj.interpolate()
+            
         elif self.model == '5m' or self.model == '10m':
             comp = index
             data0 = pg.data.GData(filename, comp=comp, z0=zs[0], z1=zs[1], z2=zs[2])
