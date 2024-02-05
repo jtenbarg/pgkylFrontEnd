@@ -78,7 +78,9 @@ def getData(self):
                     if varidGlobal[0:4] == 'dist':
                         pow = pow + self.dimsV
                     data = data[...,index*dof] / (np.sqrt(2)**pow)
+                    data = data[...,np.newaxis]
                     proj = False
+
                 else:
                     proj = pg.GInterpModal(data0, polyOrder, basis, self.params["polyOrderOverride"])
             else:
@@ -88,7 +90,6 @@ def getData(self):
                     coords, data = proj.interpolate(index)
                 else:
                     coords, data = proj.interpolate()
-            
         elif self.model == '5m' or self.model == '10m':
             comp = index
             data0 = pg.data.GData(filename, comp=comp, z0=zs[0], z1=zs[1], z2=zs[2])
@@ -1543,8 +1544,6 @@ def getData(self):
         coords = [[0.]]
         data = [0.]
         print('Unrecognized variable name {0}! You have confused me, so no data for you!'.format(varidGlobal))
-
-   
     dims = len(np.shape(data)) - 1
     # Center the grid values.
     self.dx = np.zeros(dims)
@@ -1552,10 +1551,9 @@ def getData(self):
         for d in range(dims):
             self.dx[d] = coords[d][1] - coords[d][0]
             coords[d] = 0.5*(coords[d][:-1] + coords[d][1:])
-  
     self.coords = coords
     self.data = data
-    
+
     getSlice.postSlice(self)
    
    
