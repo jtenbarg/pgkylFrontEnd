@@ -434,7 +434,11 @@ def getData(self):
         if specInd:
             spec = '_' + varid[varid.find('_')+1:]
             suf = [s + spec for s in suf]
-        for id in range(self.dimsV):
+        if self.model == 'vm' or self.model == 'vp':
+            idRange = self.dimsV
+        else:
+            idRange = 3     
+        for id in range(idRange):
             coords, b = getGenField('b' + suf[id])
             coords, j = getJ('j' + suf[id])
             if id == 0:
