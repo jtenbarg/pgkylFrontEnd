@@ -8,7 +8,6 @@ try:
 except ModuleNotFoundError:
     adios2 = 1
 
-
 from pathlib import Path
 def getData(self):
     
@@ -72,8 +71,8 @@ def getData(self):
             proj = True
             if not (isinstance(self.params.get('polyOrderOverride'), type(None))):
                 if self.params.get('polyOrderOverride') == 0:
-                    coords = data0.getGrid()
-                    data = data0.getValues()
+                    coords = data0.get_grid()
+                    data = data0.get_values()
                     pow = self.dimsX
                     if varidGlobal[0:4] == 'dist':
                         pow = pow + self.dimsV
@@ -93,8 +92,8 @@ def getData(self):
         elif self.model == '5m' or self.model == '10m':
             comp = index
             data0 = pg.data.GData(filename, comp=comp, z0=zs[0], z1=zs[1], z2=zs[2])
-            data = data0.getValues()
-            coords = data0.getGrid()
+            data = data0.get_values()
+            coords = data0.get_grid()
             if self.suffix == '.gkyl':
                 data = data[...,comp]
                 data = data[...,np.newaxis]
@@ -1557,7 +1556,7 @@ def getData(self):
             coords[d] = 0.5*(coords[d][:-1] + coords[d][1:])
     self.coords = coords
     self.data = data
-
+    
     getSlice.postSlice(self)
    
    

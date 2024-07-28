@@ -2,7 +2,7 @@ import numpy as np
 import postgkyl as pg
 
 def getData(fileName):
-    komega = pg.GData(fileName).getValues()
+    komega = pg.GData(fileName).get_values()
     k = [komega[:,d] for d in range(3)]
   
 
