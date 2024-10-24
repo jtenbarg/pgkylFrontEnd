@@ -186,19 +186,36 @@ def equivMax(f, spec):
     return fMax
 
 #Generalized Simpson's rule for arbitrary dimensions.
+def integrateSimpson(f, dx=1., axis=None):
+    dims = len(np.shape(f)); 
+    if axis is None:
+        axis = tuple(np.arange(0,dims))
+    if (type(dx) is not list) and (not isinstance(dx,np.ndarray)):
+        dx = dx*np.ones(dims)
+    tot = f
+    if type(axis) is int:
+        tot = sp.integrate.simpson(tot, dx=dx[axis], axis=axis)
+    else:
+        axisSorted = sorted(axis, reverse=True)
+        for d in axisSorted:
+            tot = sp.integrate.simpson(tot, dx=dx[d], axis=d)
+
+    return tot
+
+#Simple sum over arbitrary dimensions.
 def integrate(f, dx=1., axis=None):
     dims = len(np.shape(f)); 
     if axis is None:
         axis = tuple(np.arange(0,dims))
-    if type(dx) is not list:
+    if (type(dx) is not list) and (not isinstance(dx,np.ndarray)):
         dx = dx*np.ones(dims)
     tot = f
     if type(axis) is int:
-        tot = sp.integrate.simps(tot, dx=dx[axis], axis=axis)
+        tot = np.sum(tot, axis=axis)*dx[axis]
     else:
         axisSorted = sorted(axis, reverse=True)
         for d in axisSorted:
-            tot = sp.integrate.simps(tot, dx=dx[d], axis=d)
+            tot = np.sum(tot, axis=d)*dx[d]
 
     return tot
 
