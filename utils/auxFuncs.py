@@ -220,3 +220,180 @@ def integrate(f, dx=1., axis=None):
     return tot
 
 
+def getFFTInterp(f, x, fac=2): #Interpolate 2D using zero padded FFT. Must be square data!
+    n0 = np.shape(f);
+    #n = [n0[d]*fac for d in range(2)]
+    pad_width = int( (fac*n0[0] - n0[0]) / 2.  )
+  
+    ff = np.fft.fft2(f)  
+    ff_shift = np.fft.fftshift(ff)
+    ff_shift_pad = np.pad(ff_shift, pad_width=pad_width, mode='constant', constant_values=0)
+    ff_pad = np.fft.ifftshift(ff_shift_pad)
+    g = np.fft.ifft2(ff_pad)*fac*fac #Rescaling is correct for even grids  
+    n = np.shape(g)
+
+    dx = [x[d][1] - x[d][0] for d in range(2)]
+    xL = [x[d][0] - dx[d]/2. for d in range(2)] #recover upper and lower cell edges from centers
+    xU = [x[d][-1] + dx[d]/2. for d in range(2)]
+    coords = [np.linspace(xL[d], xU[d], n[d] + 1) for d in range(2)] #new grid
+    coords = [0.5*(coords[d][:-1] + coords[d][1:]) for d in range(2)] #shift to cell centers
+
+    return g.real, coords
+
+#Find unique critical points
+def getCritPoints(f, g=None, dx=[1.,1.]):
+    n = np.shape(f);
+    
+    if g is None:        
+        [df_dx,df_dy,df_dz] = genGradient(f,dx) #Used if input is psi
+    else:
+        df_dx = -g; df_dy = f #Used if input is Bx and By
+
+    iGrad = np.zeros(n)
+
+    #x and y points one cell ahead, considering periodic BCs
+    jx = np.arange(1,n[0]); jx = np.append(jx, 0)
+    jy = np.arange(1,n[1]); jy = np.append(jy, 0)
+
+    tmpDx = np.zeros(4); tmpDy = np.zeros(4); 
+    iGradTmpx = np.zeros(4); iGradTmpy = np.zeros(4)
+    for ix in range(n[0]):
+        ixp = jx[ix]
+        for iy in range(n[1]):
+            iyp = jy[iy]
+
+            tmpDx[0]=df_dx[ix,iy]
+            tmpDx[1]=df_dx[ixp,iy]
+            tmpDx[2]=df_dx[ix,iyp]
+            tmpDx[3]=df_dx[ixp,iyp]
+
+            tmpDy[0]=df_dy[ix,iy]
+            tmpDy[1]=df_dy[ixp,iy]
+            tmpDy[2]=df_dy[ix,iyp]
+            tmpDy[3]=df_dy[ixp,iyp]  
+            
+            #Signs of the gradient
+            for i in range(4):
+                if tmpDx[i] != 0.:
+                    iGradTmpx[i] = tmpDx[i] / np.abs(tmpDx[i]) 
+                else:
+                    iGradTmpx[i] = 3.
+
+            for i in range(4):
+                if tmpDy[i] != 0.:
+                    iGradTmpy[i] = tmpDy[i] / np.abs(tmpDy[i])
+                else:
+                    iGradTmpy[i] = 3.
+            
+            #Check is point is a critical point
+            if np.all(iGradTmpx == iGradTmpx[0]) or np.all(iGradTmpy == iGradTmpy[0]):
+                iGrad[ix,iy] = 0
+            else:
+                iGrad[ix,iy] = 1
+
+            if np.any(iGradTmpx == 3.) or np.any(iGradTmpy == 3.):
+                iGrad[ix,iy] = 1
+    
+
+    critPoints = np.where(iGrad == 1)
+    numC = np.shape(critPoints)[1]
+
+    dxx = dx[0]; dyy = dx[1];
+    ndegen = 0
+    #Find sub-cell extrema of candidate critical points and eliminate non-maximal critical points
+    for ip in range(numC):
+        ix = critPoints[0][ip];  iy = critPoints[1][ip]
+        ixp = jx[ix]; iyp = jy[iy]
+        Px1=df_dx[ix,iy]
+        Px2=df_dx[ixp,iy]
+        Px3=df_dx[ixp,iyp]
+        Px4=df_dx[ix,iyp]
+
+        Py1=df_dy[ix,iy]
+        Py2=df_dy[ixp,iy]
+        Py3=df_dy[ixp,iyp]
+        Py4=df_dy[ix,iyp]
+
+        AA=(Px1 - Px4)*(Py2 - Py3) - (Px2 - Px3)*(Py1 - Py4)
+        BB=dyy*(2.*Px2*Py1 - Px3*Py1 - 2.*Px1*Py2 + Px4*Py2 + Px1*Py3 - Px2*Py4)
+        CC=dyy*dyy*(Px1*Py2 - Px2*Py1)
+
+        tmp=BB*BB-4.*AA*CC
+
+        if tmp >= 0:
+            y1 = (-BB - np.sqrt(tmp) )/(2.*AA)
+            x1 = dxx*( dyy*Px1 + y1*(Px4 - Px1) )/( dyy*(Px1 - Px2) + y1*( Px2 - Px1 - Px3 + Px4) )
+            y2 = (-BB + np.sqrt(tmp) )/(2.*AA)
+            x2 = dxx*( dyy*Px1 + y2*(Px4 - Px1) )/( dyy*(Px1 - Px2) + y2*( Px2 - Px1 - Px3 + Px4) )
+            
+            tmp2 = 0.; tmp3 = 0.
+            if (y1 >= 0.) and (x1 >= 0.) and (y1 <= dyy) and (x1 <= dxx):
+                x01 = x1
+                y01 = y1
+                tmp2 = 1.
+            if (y2 >= 0.) and (x2 >= 0.) and (y2 <= dyy) and (x2 <= dxx):
+                x02 = x2
+                y02 = y2
+                tmp3 = 1.
+            if (y1 >= 0.) and (x1 >= 0.) and (y2 >= 0.) and (x2 >= 0.) and (y1 <= dyy) and (x1 <= dxx) and (y2 <= dyy) and (x2 <= dxx):
+                #print('Degenerate point found.')
+                ndegen += 1
+                iGrad[ix,iy] = 0
+            tmp4 = tmp2 + tmp3
+            if tmp4 == 0.:
+                iGrad[ix,iy] = 0
+           
+
+        else:
+            iGrad[ix,iy] = 0
+
+    if ndegen > 0:
+        print('Degenerate points found', ndegen)    
+    critPoints = np.where(iGrad == 1)
+
+    print('Critical points found ', np.shape(critPoints)[1])
+    return critPoints
+
+#Compute the Hessian matrix
+def getHessian(f, g=None, dx=[1.,1.]):
+    if g is None:
+        [df_dx,df_dy,df_dz] = genGradient(f,dx)
+    else:
+        df_dx = -g; df_dy = f
+
+    [d2f_dxdx,d2f_dxdy,d2f_dxdz] = genGradient(df_dx,dx)
+    [d2f_dydx,d2f_dydy,d2f_dydz] = genGradient(df_dy,dx)
+    
+    Hess = [d2f_dxdx, d2f_dxdy, d2f_dxdy, d2f_dydy]
+    return np.array(Hess)
+
+#Use the Hessian to find saddle (x) and min/max (o) points
+def getXOPoints(f, critPoints, dx=[1.,1.], g=None):
+    Hess = getHessian(f, g, dx)
+    numP = np.shape(critPoints)[1]
+
+    xpts = []; optsMax = []; optsMin = []
+    for ip in range(numP):
+        ix = critPoints[0][ip];  iy = critPoints[1][ip]
+        evals = np.linalg.eigvals( np.reshape(Hess[:,ix,iy], (2,2))  )
+        prod = np.prod(evals)
+
+        if prod == 0.:
+            print('Degenerate critical point found!')
+        elif prod < 0.:
+            xpts.append([ix,iy])
+        elif evals[0] > 0.:
+            optsMin.append([ix,iy])
+        else:
+            optsMax.append([ix,iy])
+
+    print('X Points found ', len(xpts))
+    print('O Points found ', len(optsMax) + len(optsMin))
+
+    xpts = np.reshape(xpts, (len(xpts), 2) )
+    optsMax = np.reshape(optsMax, (len(optsMax), 2) )
+    optsMin = np.reshape(optsMin, (len(optsMin), 2) )
+
+
+    return xpts, optsMax, optsMin
+
