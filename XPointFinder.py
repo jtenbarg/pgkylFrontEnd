@@ -41,7 +41,6 @@ params["timeNorm"] = tmp.omegaC[speciesIndexTime]
 params["axesLabels"] = ['$x/d_i$', '$y/d_i$', '$z/d_p$']
 
 params["plotContours"] = 1 #Overplot contours of the following
-params["varidContours"] = 'psi' #Plot contours of this variable
 params["colorContours"] = 'k' #Color of contours
 params["numContours"] = 50 #Number of contours
 params["axisEqual"] = 1 #Makes axes equal for 2D
@@ -84,13 +83,15 @@ critPoints = auxFuncs.getCritPoints(f, g=g, dx=dx)
 numC = np.shape(critPoints)[1]
 numX = np.shape(xpts)[0]; numOMax = np.shape(optsMax)[0]; numOMin = np.shape(optsMin)[0];
 
+#Create array of 0s with 1s only at X points
+binaryMap = np.zeros(np.shape(f)); binaryMap[xpts[:,0],xpts[:,1]] = 1
+
 
 plt.figure(figsize=(12,8))
 plt.pcolormesh(x/params["axesNorm"][0], y/params["axesNorm"][1], np.transpose(jz), shading="gouraud")
 plt.plot(x[xpts[:,0]]/params["axesNorm"][0],y[xpts[:,1]]/params["axesNorm"][1],'xk')
 plt.plot(x[optsMin[:,0]]/params["axesNorm"][0],y[optsMin[:,1]]/params["axesNorm"][1],'oc')
 plt.plot(x[optsMax[:,0]]/params["axesNorm"][0],y[optsMax[:,1]]/params["axesNorm"][1],'om')
-
 plt.xlabel(params["axesLabels"][0]); plt.ylabel(params["axesLabels"][1])
 plt.colorbar(); plt.set_cmap(params["colormap"])
 if params["symBar"]:
@@ -108,4 +109,20 @@ if saveFig:
     plt.savefig(saveFilename, dpi=300)
     print('Figure written to ',saveFilename)
 plt.show()
+
+#Plot binaryMap
+if False:
+	plt.figure(figsize=(12,8))
+	plt.pcolormesh(x/params["axesNorm"][0], y/params["axesNorm"][1], np.transpose(binaryMap), shading="gouraud")
+	plt.plot(x[xpts[:,0]]/params["axesNorm"][0],y[xpts[:,1]]/params["axesNorm"][1],'xk')
+
+	plt.xlabel(params["axesLabels"][0]); plt.ylabel(params["axesLabels"][1])
+	plt.colorbar(); plt.set_cmap('binary')
+	plt.gca().set_aspect('equal', 'box')
+	if params["plotContours"]:   
+	    plt.rcParams['contour.negative_linestyle'] = 'solid'
+	    plt.contour(x/params["axesNorm"][0], y/params["axesNorm"][1], np.transpose(psi),\
+	        params["numContours"], colors = params["colorContours"], linewidths=0.75)
+	plt.show()
+
 
