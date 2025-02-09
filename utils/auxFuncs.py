@@ -219,8 +219,8 @@ def integrate(f, dx=1., axis=None):
 
     return tot
 
-
-def getFFTInterp(f, x, fac=2): #Interpolate 2D using zero padded FFT. Must be square data!
+#Interpolate 2D using zero padded FFT. Must be square data!
+def getFFTInterp(f, x, fac=2): 
     n0 = np.shape(f);
     #n = [n0[d]*fac for d in range(2)]
     pad_width = int( (fac*n0[0] - n0[0]) / 2.  )
@@ -256,42 +256,30 @@ def getCritPoints(f, g=None, dx=[1.,1.]):
     jy = np.arange(1,n[1]); jy = np.append(jy, 0)
 
     tmpDx = np.zeros(4); tmpDy = np.zeros(4); 
-    iGradTmpx = np.zeros(4); iGradTmpy = np.zeros(4)
+    iGradx = np.sign(df_dx); iGrady = np.sign(df_dy)
     for ix in range(n[0]):
         ixp = jx[ix]
         for iy in range(n[1]):
             iyp = jy[iy]
 
-            tmpDx[0]=df_dx[ix,iy]
-            tmpDx[1]=df_dx[ixp,iy]
-            tmpDx[2]=df_dx[ix,iyp]
-            tmpDx[3]=df_dx[ixp,iyp]
+            tmpDx[0]=iGradx[ix,iy]
+            tmpDx[1]=iGradx[ixp,iy]
+            tmpDx[2]=iGradx[ix,iyp]
+            tmpDx[3]=iGradx[ixp,iyp]
 
-            tmpDy[0]=df_dy[ix,iy]
-            tmpDy[1]=df_dy[ixp,iy]
-            tmpDy[2]=df_dy[ix,iyp]
-            tmpDy[3]=df_dy[ixp,iyp]  
-            
-            #Signs of the gradient
-            for i in range(4):
-                if tmpDx[i] != 0.:
-                    iGradTmpx[i] = tmpDx[i] / np.abs(tmpDx[i]) 
-                else:
-                    iGradTmpx[i] = 3.
-
-            for i in range(4):
-                if tmpDy[i] != 0.:
-                    iGradTmpy[i] = tmpDy[i] / np.abs(tmpDy[i])
-                else:
-                    iGradTmpy[i] = 3.
+            tmpDy[0]=iGrady[ix,iy]
+            tmpDy[1]=iGrady[ixp,iy]
+            tmpDy[2]=iGrady[ix,iyp]
+            tmpDy[3]=iGrady[ixp,iyp]  
+        
             
             #Check is point is a critical point
-            if np.all(iGradTmpx == iGradTmpx[0]) or np.all(iGradTmpy == iGradTmpy[0]):
+            if np.all(tmpDx == tmpDx[0]) or np.all(tmpDy == tmpDy[0]):
                 iGrad[ix,iy] = 0
             else:
                 iGrad[ix,iy] = 1
 
-            if np.any(iGradTmpx == 3.) or np.any(iGradTmpy == 3.):
+            if np.any(tmpDx == 0.) or np.any(tmpDy == 0.):
                 iGrad[ix,iy] = 1
     
 
@@ -353,6 +341,9 @@ def getCritPoints(f, g=None, dx=[1.,1.]):
 
     print('Critical points found ', np.shape(critPoints)[1])
     return critPoints
+
+
+
 
 #Compute the Hessian matrix
 def getHessian(f, g=None, dx=[1.,1.]):
