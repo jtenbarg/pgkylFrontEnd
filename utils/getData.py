@@ -53,7 +53,7 @@ def getData(self):
             dof = dof + int(2**(self.dimsX-i)*sp.special.comb(self.dimsX,i)*sp.special.comb(self.po-i,i))
     #Will need to switch to Pascal case soon
     def genRead(filename,index):
-        zs = getSlice.preSlice(self,filename)
+        zs, time = getSlice.preSlice(self,filename)
         if self.model == 'vm' or self.model == 'pkpm' or self.model == 'vp':
             comp = str(index*dof) + ':' + str((index+1)*dof)
             polyOrder = self.po
@@ -101,8 +101,11 @@ def getData(self):
         else:
             raise RuntimeError("You have confused me! I don't know what to do with data of type {0}.".format(self.model))
         if self.suffix == '.gkyl':
-            print('Warning, gkyl0 data files do not contain time date. Time set to fileNum')
-            self.time = self.fileNum
+            if time is None:
+                print('Warning, gkyl0 data files do not contain time date. Time set to fileNum')
+                self.time = self.fileNum
+            else:
+                self.time = time
         else:
             if adios2:
                 self.time = data0.ctx['time']
