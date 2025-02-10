@@ -16,6 +16,7 @@ paramFile = '/Users/jtenbarg/Desktop/Runs/ColbyTurbulence/PKPM_New/Data/pkpm_2d_
 fileNum = 106 #Frame number
 interpFac = 1 #Apply FFT interpolation (for interpFac > 1) of order interpFac.
 useB = 0 #Use Bx and By rather than the vector potential. Seems to not work as well
+constructJz = 1 #Construct Jz from psi. Less accurate but only requires fields files
 saveFig = 0 #Save figure
 
 
@@ -51,13 +52,14 @@ params["colormap"] = 'bwr'#Colormap for 2D plots: inferno*, bwr (red-blue), any 
 #End input########################################################
 
 var = gkData.gkData(paramFile,fileNum,'psi',params).compactRead()
-#jz = getattr(gkData.gkData(paramFile,fileNum,'jz',params).compactRead(),'data')
 #Construct jz = -grad^2 psi / mu_0. This minimizes data files that need to be shared to just the fields.
-[df_dx,df_dy,df_dz] = auxFuncs.genGradient(var.data,var.dx)
-[d2f_dxdx,d2f_dxdy,d2f_dxdz] = auxFuncs.genGradient(df_dx,var.dx)
-[d2f_dydx,d2f_dydy,d2f_dydz] = auxFuncs.genGradient(df_dy,var.dx)
-jz = -(d2f_dxdx + d2f_dydy) / var.mu0
-
+if constructJz:
+	[df_dx,df_dy,df_dz] = auxFuncs.genGradient(var.data,var.dx)
+	[d2f_dxdx,d2f_dxdy,d2f_dxdz] = auxFuncs.genGradient(df_dx,var.dx)
+	[d2f_dydx,d2f_dydy,d2f_dydz] = auxFuncs.genGradient(df_dy,var.dx)
+	jz = -(d2f_dxdx + d2f_dydy) / var.mu0
+else:
+	jz = getattr(gkData.gkData(paramFile,fileNum,'jz',params).compactRead(),'data')
 
 coords0 = var.coords;
 
