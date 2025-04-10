@@ -31,7 +31,6 @@ timeLabel = '$\Omega_{Ci}$'
 var = gkData.gkData(paramFile,0,varid,params) 
 
 t, fieldEnergy, imoms = getEnergy.getData(var)
-t = t*timeNorm
 
 E = np.sum(fieldEnergy[:,0:3],axis=1)*var.eps0 / 2. #Electric field
 B = np.sum(fieldEnergy[:,3:],axis=1)/(2.*var.mu0) #Magnetic field
@@ -67,7 +66,7 @@ if norm0:
 	E = E/E0; B = B/E0; T = T/E0; u = u/E0; Etot = Etot/E0
 	ylabel = ylabel + '$ / E_0$'
 
-
+t = t*timeNorm
 cl = ['b','r','m','g']
 plt.figure(figsize=(12,8))
 plt.plot(t,Etot,'k',t,B,'--k',t,E,'g',linewidth=2)

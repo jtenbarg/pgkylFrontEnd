@@ -101,6 +101,7 @@ var.debye = species debye array
 var.mu0 = mu0
 var.eps0 = eps0
 var.c = speed of light
+var.nspec = number of species
 
 As an example, if you want your x axis in units of the inertial length of the first species in the params file, simply do var.coords[0] / var.d[0]
 
