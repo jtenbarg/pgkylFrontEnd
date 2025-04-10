@@ -412,7 +412,6 @@ def getData(self):
         return coords, data
 
     def getJ(varid): #Return various forms of the current
-        nspec = len(self.mu)
         specInd = varid.find('_')+1
         if specInd:
             spec = varid[varid.find('_')+1:]
@@ -420,7 +419,7 @@ def getData(self):
             coords, tmp = getGenMom('u' + varid[1] + '_' + spec)
             data =  self.q[specIndex]*tmp
         else:
-            for i in range(nspec):
+            for i in range(self.nspec):
                 spec = self.speciesFileIndex[i]
                 specIndex = self.speciesFileIndex.index(spec)
                 coords, tmp = getGenMom('u' + varid[1] + '_' + spec)

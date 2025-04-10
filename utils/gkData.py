@@ -45,6 +45,7 @@ class gkData:
         self.d = []
         self.rho = []
         self.debye = []
+        self.nspec = 1
 
         if (isinstance(self.params.get('lowerLimits'), type(None))): #Default limits
             self.params["lowerLimits"] = [-1e10, -1e10, -1e10, -1e10, -1e10, -1e10]

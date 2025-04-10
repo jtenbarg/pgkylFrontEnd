@@ -38,7 +38,8 @@ def setConst(self):
     self.omegaC = np.divide(np.absolute(self.q)*self.B0, self.mu)
     self.d = np.divide(self.c, self.omegaP)
     self.debye = np.divide(self.vt, self.omegaP) / np.sqrt(2.)
-    
+    self.nspec = len(self.mu)
+
     if self.B0 != 0.:
         self.beta = 2.*mu0*np.multiply(self.n,self.temp) / (self.B0*self.B0 )
         self.rho = np.divide(self.vt, self.omegaC)
