@@ -532,6 +532,8 @@ def getData(self):
     def getHeatFlux(varid): #Return Qijk component, optionally in restframe
         coords, data = getGenQ(varid)
         spec = varid[varid.find('_')+1:]
+        specIndex = self.speciesFileIndex.index(spec)
+        mass = self.mu[specIndex]
 
         if self.params["restFrame"] and not self.model == 'pkpm':
             coords, P = getPress('p' + varid[1] + varid[1] + '_' + spec)
@@ -546,8 +548,8 @@ def getData(self):
                 self.params["restFrame"] = 0
                 for id in range(dims):
                     pcomp = ''.join(sorted('p' + ii[id] + varid[1]))
-                    coords, Pik = getPress(pcomp + '_' + spec)
-                    coords, Pii = getPress('p' + ii[id] + ii[id] + '_' + spec)
+                    coords, Pik = getPress(pcomp + '_' + spec)/mass
+                    coords, Pii = getPress('p' + ii[id] + ii[id] + '_' + spec)/mass
                     coords, nui = getGenMom(momvars[id] + '_' + spec)
                     data = data + 2*(nui*nui)*nuk / (n*n) - 2*nui*Pik / n - nuk*Pii / n  
                 self.params["restFrame"] = 1                 
@@ -557,14 +559,13 @@ def getData(self):
                 coords, nuj = getGenMom('u' + varid[2] + '_' + spec)
                 coords, nuk = getGenMom('u' + varid[3] + '_' + spec)
                 self.params["restFrame"] = 0
-                coords, Pij = getPress('p' + varid[1] + varid[2] + '_' + spec)
-                coords, Pjk = getPress('p' + varid[2] + varid[3] + '_' + spec)
-                coords, Pik = getPress('p' + varid[1] + varid[3] + '_' + spec)
+                coords, Pij = getPress('p' + varid[1] + varid[2] + '_' + spec)/mass
+                coords, Pjk = getPress('p' + varid[2] + varid[3] + '_' + spec)/mass
+                coords, Pik = getPress('p' + varid[1] + varid[3] + '_' + spec)/mass
                 self.params["restFrame"] = 1  
                 data = data - (nui * Pjk + nuj*Pik + nuk*Pij) / n + 2*nui*nuj*nuk / (n*n)
 
-        specIndex = self.speciesFileIndex.index(spec)
-        data = data*self.mu[specIndex]
+        data = data*mass
         return coords, data
 
     def getTrP(varid): # Return Tr(P)
