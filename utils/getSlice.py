@@ -15,7 +15,6 @@ def _is_gkyl(file_name : str, offset : int) -> bool:
     return False
 
 def preSlice(self, filename):
-    time = None
     #Create temporary grid from adios attributes
     if self.suffix == '.bp':
         
@@ -48,20 +47,19 @@ def preSlice(self, filename):
 
             meta_size = np.fromfile(filename, dtype=dti8, count=1, offset=offset)[0]
             offset += 8
-            # read meta
-            if meta_size > 0:
-                fh = open(filename, "rb")
-                fh.seek(offset)
-                unp = mp.unpackb(fh.read(meta_size))
-                if isinstance(unp, Iterable):
-                    for key in unp:
-                        if key == "time":
-                            time = unp[key]
-                fh.close()
+            # read meta. No longer necessary 
+            #if meta_size > 0:
+            #    fh = open(filename, "rb")
+            #    fh.seek(offset)
+            #    unp = mp.unpackb(fh.read(meta_size))
+            #    if isinstance(unp, Iterable):
+            #        for key in unp:
+            #            if key == "time":
+            #                time = unp[key]
+            #    fh.close()
 
 
             offset += meta_size
-
 
         # read real-type
         realType = np.fromfile(filename, dtype=dti8, count=1, offset=offset)[0]
@@ -107,7 +105,7 @@ def preSlice(self, filename):
            
             zs.append('{0}:{1}'.format(idxs[0], idxs[1]))
 
-    return zs, time
+    return zs
     
 
 def postSlice(self):

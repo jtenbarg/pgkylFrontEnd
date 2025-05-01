@@ -53,7 +53,7 @@ def getData(self):
             dof = dof + int(2**(self.dimsX-i)*sp.special.comb(self.dimsX,i)*sp.special.comb(self.po-i,i))
     #Will need to switch to Pascal case soon
     def genRead(filename,index):
-        zs, time = getSlice.preSlice(self,filename)
+        zs = getSlice.preSlice(self,filename)
         if self.model == 'vm' or self.model == 'pkpm' or self.model == 'vp':
             comp = str(index*dof) + ':' + str((index+1)*dof)
             polyOrder = self.po
@@ -76,7 +76,8 @@ def getData(self):
                     pow = self.dimsX
                     if varidGlobal[0:4] == 'dist':
                         pow = pow + self.dimsV
-                    data = data[...,index*dof] / (np.sqrt(2)**pow)
+                    #data = data[...,index*dof] / (np.sqrt(2)**pow) #For pre May 2025 pgkyl
+                    data = data[...,0] / (np.sqrt(2)**pow)
                     data = data[...,np.newaxis]
                     proj = False
 
@@ -84,11 +85,12 @@ def getData(self):
                     proj = pg.GInterpModal(data0, polyOrder, basis, self.params["polyOrderOverride"])
             else:
                 proj = pg.GInterpModal(data0, polyOrder, basis)
+            
             if proj:
-                if self.suffix == '.gkyl':
-                    coords, data = proj.interpolate(index)
-                else:
-                    coords, data = proj.interpolate()
+                #if self.suffix == '.gkyl': #For pre May 2025 pgkyl
+                #    coords, data = proj.interpolate(index)
+                #else:
+                coords, data = proj.interpolate()
         elif self.model == '5m' or self.model == '10m':
             comp = index
             data0 = pg.data.GData(filename, comp=comp, z0=zs[0], z1=zs[1], z2=zs[2])
@@ -100,20 +102,14 @@ def getData(self):
 
         else:
             raise RuntimeError("You have confused me! I don't know what to do with data of type {0}.".format(self.model))
-        if self.suffix == '.gkyl':
-            if time is None:
-                print('Warning, gkyl0 data files do not contain time date. Time set to fileNum')
-                self.time = self.fileNum
-            else:
-                self.time = time
+       
+        if adios2 or self.suffix == '.gkyl':
+            self.time = data0.ctx['time']
         else:
-            if adios2:
-                self.time = data0.ctx['time']
-            else:
-                self.time = data0.meta['time'] 
-            if self.time is None:
-                print('Warning, data file does not contain time date. Time set to fileNum')
-                self.time = self.fileNum
+            self.time = data0.meta['time'] 
+        if self.time is None:
+            print('Warning, data file does not contain time date. Time set to fileNum')
+            self.time = self.fileNum
         return coords, data
 
     def getDist(varid): #Returns particle distribution
@@ -1561,5 +1557,4 @@ def getData(self):
     self.data = data
     
     getSlice.postSlice(self)
-   
    
