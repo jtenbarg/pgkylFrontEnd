@@ -109,7 +109,8 @@ def preSlice(self, filename):
     
 
 def postSlice(self):
-    dims = len(np.shape(np.squeeze(self.data)))
+    #dims = len(np.shape(np.squeeze(self.data)))
+    dims = len(self.coords)
     coords = self.coords.copy()
     axNorm = self.params["axesNorm"]
     idx = None
@@ -124,9 +125,7 @@ def postSlice(self):
         if idxs[0] >= len(coords[d]): idxs[0] = idxs[0]-1
         if idxs[0] == idxs[1]: idxs[1] += 1
         idxValues[d] = slice(idxs[0], idxs[1])
-        
         self.coords[d] = self.coords[d][idxValues[d]]
-        #print(self.coords[d]/axNorm[0])
     
     self.data = np.squeeze(self.data[tuple(idxValues)])
 
