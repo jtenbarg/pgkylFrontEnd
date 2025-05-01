@@ -58,7 +58,6 @@ def getData(self):
             comp = str(index*dof) + ':' + str((index+1)*dof)
             polyOrder = self.po
             basis = self.basis
-            data0 = pg.GData(filename, comp=comp, z0=zs[0], z1=zs[1], z2=zs[2], z3=zs[3], z4=zs[4], z5=zs[5])
             if varidGlobal[0:4] == 'dist':
                 data0 = pg.GData(filename, z0=zs[0], z1=zs[1], z2=zs[2], z3=zs[3], z4=zs[4], z5=zs[5])
                 if self.model == 'pkpm':
@@ -66,8 +65,13 @@ def getData(self):
                         basis = 'ms'
                     else:
                         basis = 'pkpmhyb'
+            else:
+                data0 = pg.GData(filename, comp=comp, z0=zs[0], z1=zs[1], z2=zs[2], z3=zs[3], z4=zs[4], z5=zs[5])
+
                    
-            
+            offset = 0
+            if varidGlobal[0:4] == 'dist' and self.model == 'pkpm':
+                offset = index
             proj = True
             if not (isinstance(self.params.get('polyOrderOverride'), type(None))):
                 if self.params.get('polyOrderOverride') == 0:
@@ -90,7 +94,7 @@ def getData(self):
                 #if self.suffix == '.gkyl': #For pre May 2025 pgkyl
                 #    coords, data = proj.interpolate(index)
                 #else:
-                coords, data = proj.interpolate()
+                coords, data = proj.interpolate(offset)
         elif self.model == '5m' or self.model == '10m':
             comp = index
             data0 = pg.data.GData(filename, comp=comp, z0=zs[0], z1=zs[1], z2=zs[2])
