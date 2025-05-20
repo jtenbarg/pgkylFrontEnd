@@ -98,19 +98,13 @@ def getData(self):
                 #else:
                 coords, data = proj.interpolate(offset)
         elif self.model == '5m' or self.model == '10m':
-            comp = index
-        
             if self.suffix == '.gkyl':
-                data0 = pg.GData(filename, z0=zs[0], z1=zs[1], z2=zs[2])
-                data = data0.get_values()
-                coords = data0.get_grid()
-                data = data[...,comp]
-                data = data[...,np.newaxis]
+                comp = str(index)
             else:
-                data0 = pg.GData(filename, comp=comp, z0=zs[0], z1=zs[1], z2=zs[2])
-                data = data0.get_values()
-                coords = data0.get_grid()
-
+                comp = index
+            data0 = pg.GData(filename, comp=comp, z0=zs[0], z1=zs[1], z2=zs[2])
+            data = data0.get_values()
+            coords = data0.get_grid()
         else:
             raise RuntimeError("You have confused me! I don't know what to do with data of type {0}.".format(self.model))
        
