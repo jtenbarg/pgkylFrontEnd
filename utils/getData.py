@@ -70,8 +70,10 @@ def getData(self):
 
                    
             offset = 0
+            shift = dof
             if varidGlobal[0:4] == 'dist' and self.model == 'pkpm':
                 offset = index
+                shift = 3.*dof #This factor is only valid for p=2 hybrid bases! 
             proj = True
             if not (isinstance(self.params.get('polyOrderOverride'), type(None))):
                 if self.params.get('polyOrderOverride') == 0:
@@ -80,8 +82,8 @@ def getData(self):
                     pow = self.dimsX
                     if varidGlobal[0:4] == 'dist':
                         pow = pow + self.dimsV
-                    #data = data[...,index*dof] / (np.sqrt(2)**pow) #For pre May 2025 pgkyl
-                    data = data[...,0] / (np.sqrt(2)**pow)
+                    data = data[...,offset*shift] / (np.sqrt(2)**pow) #For pre May 2025 pgkyl
+                    #data = data[...,0] / (np.sqrt(2)**pow)
                     data = data[...,np.newaxis]
                     proj = False
 
@@ -97,12 +99,17 @@ def getData(self):
                 coords, data = proj.interpolate(offset)
         elif self.model == '5m' or self.model == '10m':
             comp = index
-            data0 = pg.data.GData(filename, comp=comp, z0=zs[0], z1=zs[1], z2=zs[2])
-            data = data0.get_values()
-            coords = data0.get_grid()
+        
             if self.suffix == '.gkyl':
+                data0 = pg.GData(filename, z0=zs[0], z1=zs[1], z2=zs[2])
+                data = data0.get_values()
+                coords = data0.get_grid()
                 data = data[...,comp]
                 data = data[...,np.newaxis]
+            else:
+                data0 = pg.GData(filename, comp=comp, z0=zs[0], z1=zs[1], z2=zs[2])
+                data = data0.get_values()
+                coords = data0.get_grid()
 
         else:
             raise RuntimeError("You have confused me! I don't know what to do with data of type {0}.".format(self.model))
