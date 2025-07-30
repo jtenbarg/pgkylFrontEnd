@@ -621,7 +621,7 @@ def getData(self):
             bz = bz / B
 
             data = pxx*bx**2 + pyy*by**2 + pzz*bz**2 + 2.*(pxy*bx*by + pxz*bx*bz + pyz*by*bz)
-        
+            
         return coords, data
 
     def getPressPerp(varid): #Return Pperp = (Tr(P) - Ppar) / 2
@@ -681,6 +681,13 @@ def getData(self):
         if self.model == '5m':
             coords, data = getDens('n' + spec)
             data = np.zeros_like(data)
+        elif self.model == 'pkpm': #Theoretical correct agyrotropy for pkpm
+            coords, ppar = getPress('ppar' + spec)
+            coords, pperp = getPress('pperp' + spec)
+            I1 = ppar + 2.*pperp
+            I2 = 2.*ppar*pperp + pperp**2. 
+            denom = (I1 - ppar)* (I1 + 3.*ppar) 
+            data = np.sqrt( np.absolute( 1. - 4.* I2/denom))
         else:
             coords, pxx = getPress('pxx' + spec)
             coords, pyy = getPress('pyy' + spec)
